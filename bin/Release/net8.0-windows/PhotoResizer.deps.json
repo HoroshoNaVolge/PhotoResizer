@@ -1,0 +1,68 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "PhotoResizer/1.0.0": {
+        "dependencies": {
+          "ExifLib": "1.7.0",
+          "System.Drawing.Common": "8.0.3"
+        },
+        "runtime": {
+          "PhotoResizer.dll": {}
+        }
+      },
+      "ExifLib/1.7.0": {
+        "runtime": {
+          "lib/net45/ExifLib.dll": {
+            "assemblyVersion": "1.7.0.0",
+            "fileVersion": "1.7.0.0"
+          }
+        }
+      },
+      "Microsoft.Win32.SystemEvents/8.0.0": {},
+      "System.Drawing.Common/8.0.3": {
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/System.Drawing.Common.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.324.11603"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "PhotoResizer/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ExifLib/1.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-E+Ca3FPt0ylhmbRQqSB3DtV9v8a/cC5HRPs261jxbBxMGmWuoBMfsQVv+Qp/jLxngaHE3mhNhx0Ev998hVDwPA==",
+      "path": "exiflib/1.7.0",
+      "hashPath": "exiflib.1.7.0.nupkg.sha512"
+    },
+    "Microsoft.Win32.SystemEvents/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9opKRyOKMCi2xJ7Bj7kxtZ1r9vbzosMvRrdEhVhDz8j8MoBGgB+WmC94yH839NPH+BclAjtQ/pyagvi/8gDLkw==",
+      "path": "microsoft.win32.systemevents/8.0.0",
+      "hashPath": "microsoft.win32.systemevents.8.0.0.nupkg.sha512"
+    },
+    "System.Drawing.Common/8.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-oDE9duAtHhxYJM2bsOlZCLBKdorU9DTV1tw7Mlc+VIT7HgwO5ddfOHk/An8C+fAS9oKdmn2PaIA5t1b484uz8g==",
+      "path": "system.drawing.common/8.0.3",
+      "hashPath": "system.drawing.common.8.0.3.nupkg.sha512"
+    }
+  }
+}
