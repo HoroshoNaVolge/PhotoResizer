@@ -58,76 +58,61 @@ namespace PhotosPreparation
                 // Получение списка уже обработанных файлов в выходной папке
                 HashSet<string> processedFiles = new(Directory.GetFiles(outputFolderPath));
 
-                string[] files = Directory.GetFiles(inputFolderPath, "*.*", SearchOption.AllDirectories);
+                string[] files = Directory.GetFiles(inputFolderPath, "*.*", SearchOption.AllDirectories)
+                                            .Except(processedFiles)
+                                            .ToArray();
 
                 int counter = 1;
 
                 foreach (string filePath in files)
                 {
-                    // Проверка, был ли файл уже обработан
-                    if (processedFiles.Contains(filePath))
-                        continue;
-
                     string extension = Path.GetExtension(filePath).ToLower();
 
                     if (Array.Exists(allowedExtensions, e => e == extension))
                     {
-                        try
+                        using FileStream stream = new(filePath, FileMode.Open, FileAccess.Read);
+                        using ExifReader reader = new(filePath);
+                        if (reader.GetTagValue<DateTime>(ExifTags.DateTimeOriginal, out DateTime dateTime))
                         {
-                            using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                            using (ExifReader reader = new ExifReader(filePath))
-                            {
-                                if (reader.GetTagValue<DateTime>(ExifTags.DateTimeOriginal, out DateTime dateTime))
-                                {
-                                    using (Image originalImage = Image.FromFile(filePath))
-                                    {
-                                        int newWidth = Math.Min(originalImage.Width, maxWidth);
-                                        int newHeight = Math.Min(originalImage.Height, maxHeight);
+                            using Image originalImage = Image.FromFile(filePath);
+                            int newWidth = Math.Min(originalImage.Width, maxWidth);
+                            int newHeight = Math.Min(originalImage.Height, maxHeight);
 
-                                        using (Image resizedImage = ResizeImage(originalImage, newWidth, newHeight))
-                                        using (Graphics g = Graphics.FromImage(resizedImage))
-                                        {
-                                            Font font = new Font("Arial", 14, System.Drawing.FontStyle.Bold);
-                                            string watermark = dateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                            using Image resizedImage = ResizeImage(originalImage, newWidth, newHeight);
+                            using Graphics g = Graphics.FromImage(resizedImage);
+                            Font font = new("Arial", 14, System.Drawing.FontStyle.Bold);
+                            string watermark = dateTime.ToString("yyyy-MM-dd HH:mm:ss");
 
-                                            // Вычисляем размер текста
-                                            SizeF textSize = g.MeasureString(watermark, font);
+                            // Вычисляем размер текста
+                            SizeF textSize = g.MeasureString(watermark, font);
 
-                                            // Координаты для отрисовки текста в правом нижнем углу
-                                            int x = resizedImage.Width - (int)textSize.Width - 10;
-                                            int y = resizedImage.Height - (int)textSize.Height - 10;
+                            // Координаты для отрисовки текста в правом нижнем углу
+                            int x = resizedImage.Width - (int)textSize.Width - 10;
+                            int y = resizedImage.Height - (int)textSize.Height - 10;
 
-                                            System.Drawing.Point location = new System.Drawing.Point(x, y);
+                            System.Drawing.Point location = new(x, y);
 
-                                            g.DrawImage(resizedImage, 0, 0);
-                                            g.DrawString(watermark, font, Brushes.White, location);
+                            g.DrawImage(resizedImage, 0, 0);
+                            g.DrawString(watermark, font, Brushes.White, location);
 
-                                            foreach (PropertyItem propertyItem in originalImage.PropertyItems)
-                                                resizedImage.SetPropertyItem(propertyItem);
+                            foreach (PropertyItem propertyItem in originalImage.PropertyItems)
+                                resizedImage.SetPropertyItem(propertyItem);
 
-                                            string outputFileName = $"Фото {counter}.jpg";
-                                            counter++;
+                            string outputFileName = $"Фото {counter}.jpg";
+                            counter++;
 
-                                            string outputFilePath = Path.Combine(outputFolderPath, outputFileName);
-                                            resizedImage.Save(outputFilePath, ImageFormat.Jpeg);
+                            string outputFilePath = Path.Combine(outputFolderPath, outputFileName);
+                            resizedImage.Save(outputFilePath, ImageFormat.Jpeg);
 
-                                            // Добавление обработанного файла в список
-                                            processedFiles.Add(filePath);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Ошибка обработки {filePath}: {ex.Message}");
+                            // Добавление обработанного файла в список
+                            processedFiles.Add(filePath);
                         }
                     }
                 }
             });
         }
 
-        private static Image ResizeImage(Image image, int maxWidth, int maxHeight)
+        private static Bitmap ResizeImage(Image image, int maxWidth, int maxHeight)
         {
             double ratioX = (double)maxWidth / image.Width;
             double ratioY = (double)maxHeight / image.Height;
@@ -136,11 +121,9 @@ namespace PhotosPreparation
             int newWidth = (int)(image.Width * ratio);
             int newHeight = (int)(image.Height * ratio);
 
-            Bitmap newImage = new Bitmap(newWidth, newHeight);
+            Bitmap newImage = new(newWidth, newHeight);
             using (Graphics g = Graphics.FromImage(newImage))
-            {
                 g.DrawImage(image, 0, 0, newWidth, newHeight);
-            }
 
             return newImage;
         }
