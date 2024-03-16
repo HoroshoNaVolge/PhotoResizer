@@ -2,7 +2,7 @@
 using System.Data;
 using System.Windows;
 
-namespace PhotoResizer
+namespace PhotosPreparation
 {
     /// <summary>
     /// Interaction logic for App.xaml
