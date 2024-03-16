@@ -12,9 +12,8 @@ namespace PhotoPreparation.ViewModels
         private readonly string filePath;
 
         public DateTime CurrentDateTime { get; init; }
-
         public string CurrentDateTimeFormatted => CurrentDateTime.ToString("dd.MM.yyyy HH:mm");
-        public DateTime NewDate { get; set; }
+        public DateTime NewDateTime { get; set; }
         public TimeSpan NewTime { get; set; }
 
         public ICommand SaveCommand { get; }
@@ -22,15 +21,18 @@ namespace PhotoPreparation.ViewModels
         public EditDateTimeViewModel(DateTime currentDateTime, string filePath)
         {
             CurrentDateTime = currentDateTime;
-            NewDate = currentDateTime.Date;
+
+            // Чтобы изначально была текущая дата и время в окне редактирования
+            NewDateTime = currentDateTime.Date;
             NewTime = new TimeSpan(currentDateTime.Hour, currentDateTime.Minute, currentDateTime.Second);
-            SaveCommand = new RelayCommand(Save);
+
             this.filePath = filePath;
+            SaveCommand = new RelayCommand(Save);
         }
 
         private void Save()
         {
-            NewDate = NewDate.Date.Add(NewTime);
+            NewDateTime = NewDateTime.Date.Add(NewTime);
 
             using ExifReader reader = new(filePath);
             reader.GetTagValue(ExifTags.DateTimeOriginal, out DateTime dateTime);
