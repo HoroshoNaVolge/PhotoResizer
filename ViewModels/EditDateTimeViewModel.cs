@@ -1,9 +1,17 @@
 ﻿using ExifLib;
+using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.CommandWpf;
 using System;
 using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Runtime.Serialization;
 using System.Security.RightsManagement;
+using System.Text;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace PhotoPreparation.ViewModels
 {
@@ -11,10 +19,12 @@ namespace PhotoPreparation.ViewModels
     {
         private readonly string filePath;
 
+        public delegate void SaveCompletedEventHandler(object sender, EventArgs e);
+        public event SaveCompletedEventHandler SaveCompleted;
+
         public DateTime CurrentDateTime { get; init; }
-        public string CurrentDateTimeFormatted => CurrentDateTime.ToString("dd.MM.yyyy HH:mm");
+        public string CurrentDateTimeFormatted => CurrentDateTime.ToString("dd-MM-yyyy HH:mm");
         public DateTime NewDateTime { get; set; }
-        public TimeSpan NewTime { get; set; }
 
         public ICommand SaveCommand { get; }
 
@@ -22,21 +32,35 @@ namespace PhotoPreparation.ViewModels
         {
             CurrentDateTime = currentDateTime;
 
-            // Чтобы изначально была текущая дата и время в окне редактирования
-            NewDateTime = currentDateTime.Date;
-            NewTime = new TimeSpan(currentDateTime.Hour, currentDateTime.Minute, currentDateTime.Second);
+            //Чтобы изначально была текущая дата и время в окне редактирования
 
+            NewDateTime = currentDateTime == DateTime.MinValue ? DateTime.Now : currentDateTime;
             this.filePath = filePath;
-            SaveCommand = new RelayCommand(Save);
+            SaveCommand = new GalaSoft.MvvmLight.CommandWpf.RelayCommand(Save);
         }
 
-        private void Save()
+        public void Save()
         {
-            NewDateTime = NewDateTime.Date.Add(NewTime);
+            OnSaveCompleted(EventArgs.Empty);
 
-            using ExifReader reader = new(filePath);
-            reader.GetTagValue(ExifTags.DateTimeOriginal, out DateTime dateTime);
+            using var image = Image.FromFile(filePath);
+            // Создаем новый объект метаданных для даты и времени съемки
+            var newItem = image.PropertyItems[0];
+            newItem.Id = 0x9003; // 0x9003 - код метаданных даты и времени съемки
+            newItem.Type = 2; // Тип данных (ASCII строка)
+            newItem.Len = 20; // Длина ASCII строки (год, месяц, день, час, минута, секунда)
+            newItem.Value = Encoding.ASCII.GetBytes(NewDateTime.ToString("yyyy:MM:dd HH:mm:ss") + '\0');
 
+            // Устанавливаем свойство метаданных изображения
+            image.SetPropertyItem(newItem);
+
+            // Сохраняем изображение с обновленными метаданными
+            image.Save(filePath + ".DateTimeAdded.jpg", ImageFormat.Jpeg);
+        }
+
+        protected virtual void OnSaveCompleted(EventArgs e)
+        {
+            SaveCompleted.Invoke(this, e);
         }
     }
 }

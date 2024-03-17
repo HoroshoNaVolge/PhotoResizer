@@ -95,6 +95,8 @@ namespace PhotoPreparation.ViewModels
             try
             {
                 ReplaceExifData(filePath);
+                File.Delete(filePath);
+
                 StatusText = MessageConstants.ProcessedExifStatusSuccess;
             }
             catch (ExifLibException ex)
@@ -108,28 +110,38 @@ namespace PhotoPreparation.ViewModels
             string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
             string extension = Path.GetExtension(filePath).ToLower();
 
-            if (!Array.Exists(allowedExtensions, e => e == extension))
+            if (!allowedExtensions.Contains(extension))
             {
                 StatusText = MessageConstants.BadExtension;
                 return;
             }
 
+            // TO DO: Переделать на асинхронный метод (copilot)
+            // унифицировать обработку исключений
             try
             {
                 using ExifReader reader = new(filePath);
 
                 reader.GetTagValue<DateTime>(ExifTags.DateTimeOriginal, out DateTime dateTime);
 
-                EditDateTimeWindow editWindow = new(filePath);
-                EditDateTimeViewModel viewModel = new(dateTime, filePath);
-                editWindow.DataContext = viewModel;
+                EditDateTimeWindow editDateTimeWindow = new EditDateTimeWindow(filePath);
+                EditDateTimeViewModel editDateTimeViewModel = new EditDateTimeViewModel(dateTime, filePath);
+                editDateTimeWindow.DataContext = editDateTimeViewModel;
 
-                editWindow.ShowDialog();
+                editDateTimeViewModel.SaveCompleted += (sender, e) => editDateTimeWindow.Close();
+
+                editDateTimeWindow.ShowDialog();
+                
             }
             catch (ExifLibException ex)
             {
-                Log.Error(ex, $"Неизвестная ошибка при обработке EXIF: {filePath} {ex.Message}");
-                throw;
+                Log.Error(ex, $"Отсутствуют метаданные: {filePath} {ex.Message}");
+                EditDateTimeWindow editWindow = new EditDateTimeWindow(filePath);
+                EditDateTimeViewModel viewModel = new EditDateTimeViewModel(DateTime.MinValue, filePath);
+                editWindow.DataContext = viewModel;
+                viewModel.SaveCompleted += (sender, e) => editWindow.Close();
+                editWindow.DataContext = viewModel;
+                editWindow.ShowDialog();
             }
         }
 
@@ -169,7 +181,7 @@ namespace PhotoPreparation.ViewModels
                             using Image resizedImage = ResizeImage(originalImage, newWidth, newHeight);
                             using Graphics g = Graphics.FromImage(resizedImage);
                             var font = new Font("Arial", 14, FontStyle.Bold);
-                            var watermark = dateTime.ToString("yyyy-MM-dd HH:mm");
+                            var watermark = dateTime.ToString("dd/MM/yyyy HH:mm");
 
                             SizeF textSize = g.MeasureString(watermark, font);
 
@@ -197,13 +209,16 @@ namespace PhotoPreparation.ViewModels
                         }
 
                     }
-                    catch (ExifLibException)
+                    catch (ExifLibException ex)
                     {
+                        Log.Error(ex, $"Неизвестная ошибка работы с EXIF: {filePath} {ex.Message}");
+
                         var filePathWithoutExtension = Path.Combine(outputFolderPath, $"НЕТ МЕТАДАННЫХ {counterFailure + 1}.jpg");
                         if (!File.Exists(filePathWithoutExtension))
                             File.Copy(filePath, Path.Combine(outputFolderPath, $"НЕТ МЕТАДАННЫХ {++counterFailure}.jpg"));
                     }
                 });
+
                 stopwatch.Stop();
 
                 StatusText = processedFiles.Any(filePath => filePath.Contains("НЕТ МЕТАДАННЫХ"))
@@ -214,16 +229,13 @@ namespace PhotoPreparation.ViewModels
 
         private static Bitmap ResizeImage(Image image, int maxWidth, int maxHeight)
         {
-            double ratioX = (double)maxWidth / image.Width;
-            double ratioY = (double)maxHeight / image.Height;
-            double ratio = Math.Min(ratioX, ratioY);
+            var ratio = Math.Min((double)maxWidth / image.Width, (double)maxHeight / image.Height);
+            var newWidth = (int)(image.Width * ratio);
+            var newHeight = (int)(image.Height * ratio);
 
-            int newWidth = (int)(image.Width * ratio);
-            int newHeight = (int)(image.Height * ratio);
-
-            Bitmap newImage = new(newWidth, newHeight);
-            using (Graphics g = Graphics.FromImage(newImage))
-                g.DrawImage(image, 0, 0, newWidth, newHeight);
+            var newImage = new Bitmap(newWidth, newHeight);
+            using var g = Graphics.FromImage(newImage);
+            g.DrawImage(image, 0, 0, newWidth, newHeight);
 
             return newImage;
         }

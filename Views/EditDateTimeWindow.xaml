@@ -2,9 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helpers="clr-namespace:PhotoPreparation.Helpers"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         Title="Edit Date and Time" Height="400" Width="600" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <helpers:TimeSpanToStringConverter x:Key="TimeSpanToStringConverter"/>
+        <helpers:TimeFormatConverter x:Key="TimeFormatConverter"/>
     </Window.Resources>
 
     <Grid>
@@ -31,8 +32,8 @@
         <!-- Новая дата и время -->
         <StackPanel Grid.Row="2" HorizontalAlignment="Center">
             <Label Content="New Date and Time:" Margin="0,10,0,0"/>
-            <DatePicker SelectedDate="{Binding NewDate}" Margin="5"/>
-            <TextBox Text="{Binding NewTime, Converter={StaticResource TimeSpanToStringConverter}, UpdateSourceTrigger=Explicit}" Margin="5" Width="50"/>
+
+            <xctk:DateTimeUpDown x:Name="MyDateTimeUpDown" Value="{Binding NewDateTime}" Format="Custom" FormatString="dd-MM-yyyy HH:mm" MouseWheel="MyDateTimeUpDown_MouseWheel" Margin="5" Cursor="ScrollAll" />
         </StackPanel>
 
         <!-- Кнопка сохранения -->

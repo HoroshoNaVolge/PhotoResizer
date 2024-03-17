@@ -1,6 +1,9 @@
-﻿using System.Configuration;
+﻿using Serilog;
+using System.Configuration;
 using System.Data;
+using System.IO;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace PhotosPreparation
 {
@@ -9,6 +12,15 @@ namespace PhotosPreparation
     /// </summary>
     public partial class App : Application
     {
-    }
+        public App()
+        {
+            // Получение пути к каталогу для записи логов
+            string logDirectory = Path.Combine(@"C:\Test", "log.txt");
 
+            // Настройка Serilog для записи логов в файл
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.File(logDirectory, rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+        }
+    }
 }

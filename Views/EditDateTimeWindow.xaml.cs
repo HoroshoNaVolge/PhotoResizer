@@ -1,12 +1,35 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using Xceed.Wpf.Toolkit;
 
 namespace PhotosPreparation
 {
-    public partial class EditDateTimeWindow : Window
+    public partial class EditDateTimeWindow : Window, INotifyPropertyChanged
     {
         private string selectedImagePath;
+
+        private DateTime _newDateTime;
+        public DateTime NewDateTime
+        {
+            get { return _newDateTime; }
+            set
+            {
+                if (_newDateTime != value)
+                {
+                    _newDateTime = value;
+                    OnPropertyChanged(nameof(NewDateTime));
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
 
         public EditDateTimeWindow(string imagePath)
         {
@@ -37,8 +60,25 @@ namespace PhotosPreparation
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading image: {ex.Message}");
+                System.Windows.MessageBox.Show($"Error loading image: {ex.Message}");
             }
         }
+        private void MyDateTimeUpDown_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            DateTimeUpDown dateTimeUpDown = sender as DateTimeUpDown;
+            if (dateTimeUpDown != null)
+            {
+                // Увеличение или уменьшение времени на 15 минут при каждом шаге колеса мыши
+                if (e.Delta > 0)
+                {
+                    dateTimeUpDown.Value = dateTimeUpDown.Value?.AddMinutes(1);
+                }
+                else
+                {
+                    dateTimeUpDown.Value = dateTimeUpDown.Value?.AddMinutes(-1);
+                }
+            }
+        }
+
     }
 }
