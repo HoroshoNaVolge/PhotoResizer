@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -60,13 +59,12 @@ namespace PhotosPreparation
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Error loading image: {ex.Message}");
+                System.Windows.MessageBox.Show($"Ошибка при загрузке изображения: {ex.Message}");
             }
         }
         private void MyDateTimeUpDown_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            DateTimeUpDown dateTimeUpDown = sender as DateTimeUpDown;
-            if (dateTimeUpDown != null)
+            if (sender is DateTimeUpDown dateTimeUpDown)
             {
                 // Увеличение или уменьшение времени на 15 минут при каждом шаге колеса мыши
                 if (e.Delta > 0)

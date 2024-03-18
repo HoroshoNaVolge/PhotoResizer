@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,5 +37,12 @@ namespace PhotoPreparation.Helpers
         public const string CancelledByUser = "Выбор отменён пользователем";
 
         public const string BadExtension = "Недопустимый формат файла";
+
+        public const string JpgExtension = ".jpg";
+
+        public const string NoMetaData = "НЕТ МЕТАДАННЫХ";
+
+        public const string Welcome = "Выбери, что нужно сделать";
+    
     }
 }

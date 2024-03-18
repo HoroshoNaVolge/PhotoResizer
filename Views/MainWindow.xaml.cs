@@ -1,16 +1,5 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Windows;
-using Microsoft.Win32;
-using ExifLib;
-using System.Diagnostics;
-using System.Windows.Media.Imaging;
-using System.Diagnostics.Metrics;
-using System.Reflection;
+﻿using System.Windows;
 using PhotoPreparation.ViewModels;
-using System.Diagnostics.CodeAnalysis;
 
 namespace PhotosPreparation
 {

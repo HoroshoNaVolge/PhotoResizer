@@ -1,17 +1,8 @@
-﻿using ExifLib;
-using GalaSoft.MvvmLight.CommandWpf;
+﻿using GalaSoft.MvvmLight.CommandWpf;
 using Serilog;
-using System;
-using System.ComponentModel;
-using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Security.RightsManagement;
 using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media.Imaging;
 
 namespace PhotoPreparation.ViewModels
 {

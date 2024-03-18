@@ -1,0 +1,27 @@
+﻿<Window x:Class="PhotoPreparation.Views.SettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PhotoPreparation.Views"
+        mc:Ignorable="d"
+        Title="Настройки" Height="130" Width="395" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Margin="10" Text="Выбрать размер шрифта"/>
+        <!-- Выпадающий список выбора размера шрифта -->
+        <ComboBox Grid.Row="0" Margin="150,7,205,13" Width="40" SelectedValue="{Binding SelectedFontSizeIndex, Mode=TwoWay}">
+            <ComboBoxItem Content="10" Tag="10"/>
+            <ComboBoxItem Content="12" Tag="12"/>
+            <ComboBoxItem Content="14" Tag="14" IsSelected="True"/>
+            <ComboBoxItem Content="18" Tag="18"/>
+        </ComboBox>
+
+        <!-- Чекбокс для открытия папки после обработки -->
+        <CheckBox Grid.Row="1" Margin="10" Content="Открыть папку с обработанными файлами автоматически" IsChecked="{Binding OpenFolderAfterProcessing}" />
+    </Grid>
+</Window>

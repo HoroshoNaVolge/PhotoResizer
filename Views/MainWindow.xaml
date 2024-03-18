@@ -1,20 +1,22 @@
 ﻿<Window x:Class="PhotosPreparation.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Photos Preparation" Height="190" Width="440" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="Photos Preparation" Height="230" Width="400" ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen">
 
+    <!-- Глобальные ресурсы -->
     <Window.Resources>
+        <!-- Стиль для кнопок -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="#3498db"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#2980b9"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Padding" Value="8,3"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,5,0,5"/>
-            <!-- Add margin between buttons -->
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,3,0,3"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <!-- Триггер для изменения фона при наведении -->
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#2980b9"/>
@@ -22,19 +24,26 @@
             </Style.Triggers>
         </Style>
     </Window.Resources>
+
     <Grid>
+        <!-- Определение строк -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <!-- Add another row for the label -->
+            <RowDefinition Height="77*"/>
         </Grid.RowDefinitions>
-        <StackPanel Margin="10" Grid.Row="0">
-            <Button Content="Изменить дату-время съемки фото" Command="{Binding SelectExiferCommand}"/>
-            <Button Content="Обработать папку (открыть любое фото)" Command="{Binding SelectImageCommand}" Cursor=""/>
+
+        <!-- Кнопка настроек в правом верхнем углу -->
+        <Button Content="Настройки" Command="{Binding OpenSettingsCommand}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,10,0"/>
+
+        <!-- Кнопки в стековой панели слева -->
+        <StackPanel Grid.Row="0" Margin="10,0,0,0">
+            <Button Content="Изменить дату-время" Command="{Binding SelectExiferCommand}" MinWidth="120" Width="180"/>
+            <Button Content="Обработать папку" Command="{Binding SelectImageCommand}" MinWidth="120" Width="180"/>
         </StackPanel>
-        <!-- Move the label to the second row -->
-        <TextBlock Text="{Binding StatusText}" VerticalAlignment="Top" Margin="10,5,0,0" Grid.Row="1" HorizontalAlignment="Left"
-           TextWrapping="Wrap" Height="Auto"/>
-        <!-- Position the status text block -->
+
+        <!-- TextBox для отображения статуса -->
+        <TextBox Text="{Binding StatusText}" Grid.Row="2" Margin="10" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"
+                 HorizontalScrollBarVisibility="Disabled" IsReadOnly="True" AcceptsReturn="True" FontFamily="Times New Roman"/>
     </Grid>
 </Window>
