@@ -47,7 +47,6 @@ namespace PhotoPreparation.ViewModels
 
             // Сохраняем изображение с обновленными метаданными
             image.Save(filePath + "modified", ImageFormat.Jpeg);
-            Log.Information("Изображение сохранено с новой датой и временем");
         }
 
         protected virtual void OnSaveCompleted(EventArgs e)

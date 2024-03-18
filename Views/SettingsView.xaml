@@ -14,11 +14,14 @@
         </Grid.RowDefinitions>
         <TextBlock Grid.Row="0" Margin="10" Text="Выбрать размер шрифта"/>
         <!-- Выпадающий список выбора размера шрифта -->
-        <ComboBox Grid.Row="0" Margin="150,7,205,13" Width="40" SelectedValue="{Binding SelectedFontSizeIndex, Mode=TwoWay}">
-            <ComboBoxItem Content="10" Tag="10"/>
-            <ComboBoxItem Content="12" Tag="12"/>
-            <ComboBoxItem Content="14" Tag="14" IsSelected="True"/>
-            <ComboBoxItem Content="18" Tag="18"/>
+        <ComboBox x:Name="FontSizeComboBox" 
+                  SelectionChanged="FontSizeComboBox_SelectionChanged"
+                  HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ComboBoxItem Content="10"/>
+            <ComboBoxItem Content="12"/>
+            <ComboBoxItem Content="14"/>
+            <ComboBoxItem Content="16"/>
+            <ComboBoxItem Content="18"/>
         </ComboBox>
 
         <!-- Чекбокс для открытия папки после обработки -->

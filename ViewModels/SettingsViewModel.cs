@@ -12,6 +12,12 @@ namespace PhotoPreparation.ViewModels
         private bool openFolderAfterProcessing;
         private int selectedFontSizeIndex;
 
+        public SettingsViewModel()
+        {
+            SelectedFontSizeIndex = 14; // Установим начальное значение по умолчанию
+            OpenFolderAfterProcessing = true;
+        }
+
         public bool OpenFolderAfterProcessing
         {
             get { return openFolderAfterProcessing; }
@@ -38,13 +44,11 @@ namespace PhotoPreparation.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            MessageBox.Show(SelectedFontSizeIndex.ToString());
-        }
+        protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        public void SetSelectedFontSize(int fontSize) => SelectedFontSizeIndex = fontSize;
     }
 }
 

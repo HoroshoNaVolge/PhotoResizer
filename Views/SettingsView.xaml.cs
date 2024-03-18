@@ -1,5 +1,6 @@
 ﻿using PhotoPreparation.ViewModels;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace PhotoPreparation.Views
 {
@@ -8,9 +9,29 @@ namespace PhotoPreparation.Views
     /// </summary>
     public partial class SettingsView : Window
     {
-        public SettingsView()
+        public SettingsView(int defaultFontSize)
         {
             InitializeComponent();
+            foreach (ComboBoxItem item in FontSizeComboBox.Items)
+            {
+                if (item.Content.ToString() == defaultFontSize.ToString())
+                {
+                    // Устанавливаем этот элемент в качестве выбранного элемента по умолчанию
+                    FontSizeComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        private void FontSizeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (FontSizeComboBox.SelectedItem != null)
+            {
+                if (int.TryParse((FontSizeComboBox.SelectedItem as ComboBoxItem)?.Content.ToString(), out int selectedFontSize))
+                {
+                    (DataContext as SettingsViewModel)?.SetSelectedFontSize(selectedFontSize);
+                }
+            }
         }
     }
 }

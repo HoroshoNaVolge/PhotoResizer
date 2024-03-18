@@ -15,7 +15,7 @@ namespace PhotosPreparation
         public App()
         {
             // Получение пути к каталогу для записи логов
-            string logDirectory = @"logs\log.txt";
+            string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"PhotoPreparation\logs\log.txt");
 
 
             // Настройка Serilog для записи логов в файл

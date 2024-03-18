@@ -21,6 +21,8 @@ namespace PhotoPreparation.ViewModels
     {
         private readonly SettingsViewModel settingsViewModel = new();
 
+        private static readonly object lockObject = new();
+        private static readonly object fileLock = new();
 
         public bool OpenFolderAfterProcessing = true;
 
@@ -68,7 +70,7 @@ namespace PhotoPreparation.ViewModels
 
         private void OpenSettings()
         {
-            SettingsView settingsView = new()
+            SettingsView settingsView = new(SelectedFontSizeIndex)
             {
                 DataContext = settingsViewModel
             };
@@ -113,19 +115,23 @@ namespace PhotoPreparation.ViewModels
                 await ProcessImagesAsync(inputFolderPath, maxWidth, maxHeight);
 
 
-                if (OpenFolderAfterProcessing)
-                    Process.Start(MessageConstants.ProcessedFolderExplorer, outputFolderPath);
+
             }
         }
 
         private async Task ProcessImagesAsync(string inputFolderPath, int maxWidth, int maxHeight)
         {
+
             var outputFolderPath = Path.Combine(inputFolderPath, MessageConstants.OutputFolderName);
             if (Directory.Exists(outputFolderPath) && Directory.EnumerateFileSystemEntries(outputFolderPath).Any())
             {
-                var result = MessageBox.Show("Директория уже существует и не пустая. Перезаписать обработанные файлы?", "Предупреждение", MessageBoxButtons.YesNo);
+                var result = MessageBox.Show("Папка Обработанные фото уже существует и не пустая. Перезаписать обработанные файлы?", "Предупреждение", MessageBoxButtons.YesNo);
                 if (result == DialogResult.No)
+                {
+                    StatusText = MessageConstants.CancelledByUser;
                     return;
+                }
+                Directory.Delete(outputFolderPath, true);
             }
 
             await Task.Run(() =>
@@ -143,10 +149,13 @@ namespace PhotoPreparation.ViewModels
 
                 var counterSuccess = 0;
                 var counterFailure = 0;
+
+
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 Parallel.ForEach(files, filePath =>
                 {
+                    string fileName = Path.GetFileName(filePath);
                     try
                     {
                         using ExifReader reader = new(filePath);
@@ -162,6 +171,7 @@ namespace PhotoPreparation.ViewModels
                             var font = new Font("Arial", SelectedFontSizeIndex, FontStyle.Bold);
                             var watermark = dateTime.ToString("dd/MM/yyyy HH:mm");
 
+
                             SizeF textSize = g.MeasureString(watermark, font);
 
                             // Координаты для отрисовки текста в правом нижнем углу
@@ -175,16 +185,27 @@ namespace PhotoPreparation.ViewModels
                             foreach (PropertyItem propertyItem in originalImage.PropertyItems)
                                 resizedImage.SetPropertyItem(propertyItem);
 
-                            resizedImage.Save(Path.Combine(outputFolderPath, $"Фото {++counterSuccess}{MessageConstants.JpgExtension}"), ImageFormat.Jpeg);
+                            lock (fileLock)
+                            {
+                                ++counterSuccess;
+                                resizedImage.Save(Path.Combine(outputFolderPath, fileName), ImageFormat.Jpeg);
+                            }
 
-                            processedFiles.Add(filePath);
+                            lock (lockObject)
+                            {
+                                processedFiles.Add(filePath);
+                            };
                         }
 
                         else
                         {
-                            var filePathWithoutExtension = Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
-                            if (!File.Exists(filePathWithoutExtension))
-                                File.Copy(filePath, Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+                            lock (lockObject)
+                            {
+                                var filePathWithoutExtension = Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
+                                if (!File.Exists(filePathWithoutExtension))
+                                    File.Copy(filePath, Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+                                processedFiles.Add(Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+                            }
                         }
 
                     }
@@ -192,20 +213,29 @@ namespace PhotoPreparation.ViewModels
                     {
                         Log.Error(ex, $"Ошибка работы с EXIF: {filePath} {ex.Message}");
 
-                        var filePathWithoutExtension = Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
-                        if (!File.Exists(filePathWithoutExtension))
-                            File.Copy(filePath, Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+
+                        lock (lockObject)
+                        {
+                            var filePathWithoutExtension = Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
+                            if (!File.Exists(filePathWithoutExtension))
+                                File.Copy(filePath, Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+                            processedFiles.Add(filePath);
+                            StatusText = $"Ошибка при работе с EXIF файла {Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}")}";
+                        }
                     }
 
                     catch (Exception ex)
                     {
                         Log.Error(ex, $"Неизвестная ошибка: {filePath} {ex.Message}");
 
-                        var filePathWithoutExtension = Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
-                        if (!File.Exists(filePathWithoutExtension))
-                            File.Copy(filePath, Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
-
-                        StatusText = $"Неизвестная ошибка при работе с {filePath}";
+                        lock (lockObject)
+                        {
+                            var filePathWithoutExtension = Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
+                            if (!File.Exists(filePathWithoutExtension))
+                                File.Copy(filePath, Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+                            processedFiles.Add(filePath);
+                            StatusText = $"Неизвестная ошибка при работе с файлом {Path.Combine(outputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}")}";
+                        }
                     }
 
                 });
@@ -215,6 +245,9 @@ namespace PhotoPreparation.ViewModels
                 StatusText = processedFiles.Any(filePath => filePath.Contains(MessageConstants.NoMetaData))
                     ? $"Обработка папки {inputFolderPath} завершена за {(double)stopwatch.ElapsedMilliseconds / 1000} секунд\n ЕСТЬ ФОТО БЕЗ МЕТАДАННЫХ. Проверьте в обработанной папке"
                     : $"Обработка папки {inputFolderPath} завершена за {(double)stopwatch.ElapsedMilliseconds / 1000} секунд";
+               
+                if (OpenFolderAfterProcessing)
+                    Process.Start(MessageConstants.ProcessedFolderExplorer, outputFolderPath);
             });
         }
 
@@ -274,8 +307,8 @@ namespace PhotoPreparation.ViewModels
 
                 reader.GetTagValue<DateTime>(ExifTags.DateTimeOriginal, out DateTime dateTime);
 
-                EditDateTimeWindow editDateTimeWindow = new EditDateTimeWindow(filePath);
-                EditDateTimeViewModel editDateTimeViewModel = new EditDateTimeViewModel(dateTime, filePath);
+                EditDateTimeWindow editDateTimeWindow = new(filePath);
+                EditDateTimeViewModel editDateTimeViewModel = new(dateTime, filePath);
                 editDateTimeWindow.DataContext = editDateTimeViewModel;
 
                 editDateTimeViewModel.SaveCompleted += (sender, e) => editDateTimeWindow.Close();
@@ -285,16 +318,14 @@ namespace PhotoPreparation.ViewModels
             catch (ExifLibException ex)
             {
                 Log.Error(ex, $"Отсутствуют метаданные: {filePath} {ex.Message}");
-                EditDateTimeWindow editWindow = new EditDateTimeWindow(filePath);
-                EditDateTimeViewModel viewModel = new EditDateTimeViewModel(DateTime.MinValue, filePath);
+                EditDateTimeWindow editWindow = new(filePath);
+                EditDateTimeViewModel viewModel = new(DateTime.MinValue, filePath);
                 editWindow.DataContext = viewModel;
                 viewModel.SaveCompleted += (sender, e) => editWindow.Close();
                 editWindow.DataContext = viewModel;
                 editWindow.ShowDialog();
             }
         }
-
-
 
         protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
