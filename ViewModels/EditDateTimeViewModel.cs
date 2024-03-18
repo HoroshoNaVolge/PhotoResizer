@@ -1,6 +1,6 @@
 ﻿using ExifLib;
-using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.CommandWpf;
+using Serilog;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -20,7 +20,7 @@ namespace PhotoPreparation.ViewModels
         private readonly string filePath;
 
         public delegate void SaveCompletedEventHandler(object sender, EventArgs e);
-        public event SaveCompletedEventHandler SaveCompleted;
+        public event SaveCompletedEventHandler? SaveCompleted;
 
         public DateTime CurrentDateTime { get; init; }
         public string CurrentDateTimeFormatted => CurrentDateTime.ToString("dd-MM-yyyy HH:mm");
@@ -36,7 +36,7 @@ namespace PhotoPreparation.ViewModels
 
             NewDateTime = currentDateTime == DateTime.MinValue ? DateTime.Now : currentDateTime;
             this.filePath = filePath;
-            SaveCommand = new GalaSoft.MvvmLight.CommandWpf.RelayCommand(Save);
+            SaveCommand = new RelayCommand(Save);
         }
 
         public void Save()
@@ -55,12 +55,13 @@ namespace PhotoPreparation.ViewModels
             image.SetPropertyItem(newItem);
 
             // Сохраняем изображение с обновленными метаданными
-            image.Save(filePath + ".DateTimeAdded.jpg", ImageFormat.Jpeg);
+            image.Save(filePath + "modified", ImageFormat.Jpeg);
+            Log.Information("Изображение сохранено с новой датой и временем");
         }
 
         protected virtual void OnSaveCompleted(EventArgs e)
         {
-            SaveCompleted.Invoke(this, e);
+            SaveCompleted?.Invoke(this, e);
         }
     }
 }

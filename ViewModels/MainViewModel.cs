@@ -16,6 +16,7 @@ using System.Windows.Input;
 using PhotoPreparation.Helpers;
 using System.ComponentModel;
 using Serilog;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 
 namespace PhotoPreparation.ViewModels
 {
@@ -70,7 +71,6 @@ namespace PhotoPreparation.ViewModels
                 StatusText = MessageConstants.ProcessingImagesStatus;
                 await ProcessImagesAsync(inputFolderPath, outputFolderPath, maxWidth, maxHeight);
 
-                //StatusText = $"{MessageConstants.ProcessingFolderStatus}\n{inputFolderPath} ";
                 Process.Start(MessageConstants.ProcessedFolderExplorer, outputFolderPath);
             }
         }
@@ -92,23 +92,29 @@ namespace PhotoPreparation.ViewModels
             string filePath = openFileDialog.FileName;
 
             StatusText = MessageConstants.ProcessingExifStatus;
-            try
-            {
-                ReplaceExifData(filePath);
-                // Удаляем исходный файл и переименовываем обработанный файл
-                File.Delete(filePath);
-                File.Move(filePath + ".DateTimeAdded.jpg", filePath);
 
-                StatusText = MessageConstants.ProcessedExifStatusSuccess;
-            }
-            catch (ExifLibException ex)
+            ReplaceExifData(filePath, out bool modified);
+            // Удаляем исходный файл и переименовываем обработанный файл
+
+            if (!File.Exists(filePath + "modified"))
             {
-                StatusText = ex.Message;
+                StatusText = MessageConstants.CancelledByUser;
+                return;
             }
+
+            File.Delete(filePath);
+            File.Move(filePath + "modified", filePath);
+            StatusText = MessageConstants.ProcessedExifStatusSuccess;
         }
 
-        private void ReplaceExifData(string filePath)
+        private void ReplaceExifData(string filePath, out bool modified)
         {
+            modified = false;
+            if (filePath == null)
+            {
+                StatusText = MessageConstants.CancelledByUser;
+                return;
+            }
             string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
             string extension = Path.GetExtension(filePath).ToLower();
 
@@ -134,6 +140,7 @@ namespace PhotoPreparation.ViewModels
 
                 editDateTimeWindow.ShowDialog();
 
+                modified = true;
             }
             catch (ExifLibException ex)
             {
@@ -153,8 +160,13 @@ namespace PhotoPreparation.ViewModels
             {
                 string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
 
-                if (!Directory.Exists(outputFolderPath))
-                    Directory.CreateDirectory(outputFolderPath);
+                if (Directory.Exists(outputFolderPath) && Directory.EnumerateFileSystemEntries(outputFolderPath).Any())
+                {
+                    var result = MessageBox.Show("Директория уже существует и не пустая. Перезаписать обработанные файлы?", "Предупреждение", MessageBoxButtons.YesNo);
+                    if (result == DialogResult.No)
+                        return;
+                }
+                Directory.CreateDirectory(outputFolderPath);
 
                 // Получение списка уже обработанных файлов в выходной папке
                 HashSet<string> processedFiles = new(Directory.GetFiles(outputFolderPath));
@@ -213,12 +225,24 @@ namespace PhotoPreparation.ViewModels
                     }
                     catch (ExifLibException ex)
                     {
-                        Log.Error(ex, $"Неизвестная ошибка работы с EXIF: {filePath} {ex.Message}");
+                        Log.Error(ex, $"Ошибка работы с EXIF: {filePath} {ex.Message}");
 
                         var filePathWithoutExtension = Path.Combine(outputFolderPath, $"НЕТ МЕТАДАННЫХ {counterFailure + 1}.jpg");
                         if (!File.Exists(filePathWithoutExtension))
                             File.Copy(filePath, Path.Combine(outputFolderPath, $"НЕТ МЕТАДАННЫХ {++counterFailure}.jpg"));
                     }
+
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Неизвестная ошибка: {filePath} {ex.Message}");
+
+                        var filePathWithoutExtension = Path.Combine(outputFolderPath, $"НЕТ МЕТАДАННЫХ {counterFailure + 1}.jpg");
+                        if (!File.Exists(filePathWithoutExtension))
+                            File.Copy(filePath, Path.Combine(outputFolderPath, $"НЕТ МЕТАДАННЫХ {++counterFailure}.jpg"));
+
+                        StatusText = $"Неизвестная ошибка при работе с {filePath}";
+                    }
+
                 });
 
                 stopwatch.Stop();

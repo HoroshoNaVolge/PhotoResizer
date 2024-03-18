@@ -15,6 +15,8 @@ namespace PhotoPreparation.Helpers
 
         public const string SelectImageTitle = "Выберите папку с изображениями (открыть любое фото в папке)";
 
+        public const string SelectFoldersTitle = "Выберите папки с изображениями для обработки";
+
         public const string SelectExiferTitle = "Выберите файл для замены метаданных";
 
         public const string ProcessingImagesStatus = "Выполняется обработка изображений";

@@ -10,12 +10,13 @@ namespace PhotosPreparation
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         public App()
         {
             // Получение пути к каталогу для записи логов
-            string logDirectory = Path.Combine(@"C:\Test", "log.txt");
+            string logDirectory =
+                Path.Combine(Directory.GetCurrentDirectory(), "...\\...\\logs\\log.txt");
 
             // Настройка Serilog для записи логов в файл
             Log.Logger = new LoggerConfiguration()
