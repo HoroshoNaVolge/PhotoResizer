@@ -95,7 +95,9 @@ namespace PhotoPreparation.ViewModels
             try
             {
                 ReplaceExifData(filePath);
+                // Удаляем исходный файл и переименовываем обработанный файл
                 File.Delete(filePath);
+                File.Move(filePath + ".DateTimeAdded.jpg", filePath);
 
                 StatusText = MessageConstants.ProcessedExifStatusSuccess;
             }
@@ -131,7 +133,7 @@ namespace PhotoPreparation.ViewModels
                 editDateTimeViewModel.SaveCompleted += (sender, e) => editDateTimeWindow.Close();
 
                 editDateTimeWindow.ShowDialog();
-                
+
             }
             catch (ExifLibException ex)
             {
