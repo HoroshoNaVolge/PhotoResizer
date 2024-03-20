@@ -12,5 +12,7 @@ namespace PhotoPreparation.Helpers
         {
             // TO DO: перенести сюда логику из MainViewModel
         }
+
+
     }
 }

@@ -49,9 +49,7 @@ namespace PhotoPreparation.ViewModels
             image.Save(filePath + "modified", ImageFormat.Jpeg);
         }
 
-        protected virtual void OnSaveCompleted(EventArgs e)
-        {
-            SaveCompleted?.Invoke(this, e);
-        }
+        protected virtual void OnSaveCompleted(EventArgs e) => SaveCompleted?.Invoke(this, e);
+
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PhotoPreparation.Views"
         mc:Ignorable="d"
-        Title="Настройки" Height="130" Width="395" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow">
+        Title="Настройки" Height="180" Width="395" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -15,16 +15,28 @@
         <TextBlock Grid.Row="0" Margin="10" Text="Выбрать размер шрифта"/>
         <!-- Выпадающий список выбора размера шрифта -->
         <ComboBox x:Name="FontSizeComboBox" 
-                  SelectionChanged="FontSizeComboBox_SelectionChanged"
+                  SelectedIndex="{Binding SelectedFontSizeIndex}"
                   HorizontalAlignment="Center" VerticalAlignment="Center">
             <ComboBoxItem Content="10"/>
             <ComboBoxItem Content="12"/>
-            <ComboBoxItem Content="14"/>
+            <ComboBoxItem Content="14" IsSelected="True"/>
             <ComboBoxItem Content="16"/>
             <ComboBoxItem Content="18"/>
+            <ComboBoxItem Content="22"/>
         </ComboBox>
-
+        <TextBlock Grid.Row="1" Margin="10,10,235,9"><Run Language="ru-ru" Text="Целевое разрешение фото"/></TextBlock>
+        <!-- Комбобокс с разрешениями -->
+        <ComboBox x:Name="ResolutionComboBox" 
+          SelectedIndex="{Binding SelectedResolutionIndex}" 
+          HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" Width="74" Margin="184,10,0,0">
+            <ComboBoxItem Content="640x480" IsSelected="True"/>
+            <ComboBoxItem Content="800x600"/>
+            <ComboBoxItem Content="1024x768"/>
+            <ComboBoxItem Content="1280, 1024"/>
+        </ComboBox>
+        <!-- Чекбокс для удаления оригинальных фотографий после обработки -->
+        <CheckBox Grid.Row="1" Margin="10,73,10,-53" Content="Удалить оригинальные фото после обработки" IsChecked="{Binding DeleteOriginalPhotos}" />
         <!-- Чекбокс для открытия папки после обработки -->
-        <CheckBox Grid.Row="1" Margin="10" Content="Открыть папку с обработанными файлами автоматически" IsChecked="{Binding OpenFolderAfterProcessing}" />
+        <CheckBox Grid.Row="1" Margin="10,93,10,-73" Content="Открыть папку с обработанными файлами автоматически" IsChecked="{Binding OpenFolderAfterProcessing}"/>
     </Grid>
 </Window>

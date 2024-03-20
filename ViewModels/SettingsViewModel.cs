@@ -1,21 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace PhotoPreparation.ViewModels
 {
     public class SettingsViewModel : INotifyPropertyChanged
     {
+        private bool deleteOriginalPhotos;
         private bool openFolderAfterProcessing;
         private int selectedFontSizeIndex;
+        private int selectedResolutionIndex;
+
 
         public SettingsViewModel()
         {
             SelectedFontSizeIndex = 14; // Установим начальное значение по умолчанию
             OpenFolderAfterProcessing = true;
+            SelectedResolutionIndex = 0;
+            DeleteOriginalPhotos = true;
+        }
+
+        public bool DeleteOriginalPhotos
+        {
+            get { return deleteOriginalPhotos; }
+            set
+            {
+                if (deleteOriginalPhotos != value)
+                {
+                    deleteOriginalPhotos = value;
+                    OnPropertyChanged(nameof(DeleteOriginalPhotos));
+                    MessageBox.Show($"Delet Photos: {deleteOriginalPhotos}");
+                }
+            }
         }
 
         public bool OpenFolderAfterProcessing
@@ -27,6 +41,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     openFolderAfterProcessing = value;
                     OnPropertyChanged(nameof(OpenFolderAfterProcessing));
+                    MessageBox.Show($"OpenFolder: {OpenFolderAfterProcessing}");
                 }
             }
         }
@@ -40,6 +55,21 @@ namespace PhotoPreparation.ViewModels
                 {
                     selectedFontSizeIndex = value;
                     OnPropertyChanged(nameof(SelectedFontSizeIndex));
+                    MessageBox.Show($"font index: {SelectedFontSizeIndex}");
+                }
+            }
+        }
+
+        public int SelectedResolutionIndex
+        {
+            get { return selectedResolutionIndex; }
+            set
+            {
+                if (selectedResolutionIndex != value)
+                {
+                    selectedResolutionIndex = value;
+                    OnPropertyChanged(nameof(SelectedResolutionIndex));
+                    MessageBox.Show($"res index: {selectedResolutionIndex}");
                 }
             }
         }
