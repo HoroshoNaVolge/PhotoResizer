@@ -1,4 +1,6 @@
-﻿using Serilog;
+﻿using PhotoPreparation.ViewModels;
+using PhotoPreparation.Views;
+using Serilog;
 using System.Configuration;
 using System.Data;
 using System.IO;
@@ -14,11 +16,25 @@ namespace PhotosPreparation
     {
         public App()
         {
-            // Получение пути к каталогу для записи логов
+            ConfigureLogger();
+            ConfigureViewsAndModels();
+        }
+
+        private static void ConfigureViewsAndModels()
+        {
+            var settingsViewModel = new SettingsViewModel();
+            var settingsView = new SettingsView(settingsViewModel);
+
+            var mainViewModel = new MainViewModel(settingsViewModel, settingsView);
+            var mainWindow = new MainWindow(mainViewModel);
+
+            mainWindow.Show();
+        }
+
+        private static void ConfigureLogger()
+        {
             string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"PhotoPreparation\logs\log.txt");
 
-
-            // Настройка Serilog для записи логов в файл
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.File(logDirectory, rollingInterval: RollingInterval.Day)
                 .CreateLogger();

@@ -25,9 +25,11 @@ namespace PhotoPreparation.Helpers
         {
             return comboboxIndex switch
             {
-                1 => (640, 480),
-                2 => (1280, 1024),
-                _ => (0, 0),
+                0 => (640, 480),
+                1 => (800, 600),
+                2 => (1024, 768),
+                3 => (1280, 1024),
+                _ => (640, 480),
             };
         }
 
@@ -42,7 +44,7 @@ namespace PhotoPreparation.Helpers
                 5 => 18,
                 6 => 22,
                 _ => 14
-            } ;
+            };
         }
     }
 }

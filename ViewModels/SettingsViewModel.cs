@@ -15,7 +15,7 @@ namespace PhotoPreparation.ViewModels
             SelectedFontSizeIndex = 14; // Установим начальное значение по умолчанию
             OpenFolderAfterProcessing = true;
             SelectedResolutionIndex = 0;
-            DeleteOriginalPhotos = true;
+            DeleteOriginalPhotos = false;
         }
 
         public bool DeleteOriginalPhotos
