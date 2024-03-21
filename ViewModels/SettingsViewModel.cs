@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using PhotoPreparation.Helpers;
+using System.ComponentModel;
 
 namespace PhotoPreparation.ViewModels
 {
@@ -16,6 +17,7 @@ namespace PhotoPreparation.ViewModels
             OpenFolderAfterProcessing = true;
             SelectedResolutionIndex = 0;
             DeleteOriginalPhotos = false;
+
         }
 
         public bool DeleteOriginalPhotos
@@ -27,7 +29,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     deleteOriginalPhotos = value;
                     OnPropertyChanged(nameof(DeleteOriginalPhotos));
-                    MessageBox.Show($"Delet Photos: {deleteOriginalPhotos}");
+                  //  ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -41,7 +43,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     openFolderAfterProcessing = value;
                     OnPropertyChanged(nameof(OpenFolderAfterProcessing));
-                    MessageBox.Show($"OpenFolder: {OpenFolderAfterProcessing}");
+                    //  ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -55,7 +57,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     selectedFontSizeIndex = value;
                     OnPropertyChanged(nameof(SelectedFontSizeIndex));
-                    MessageBox.Show($"font index: {SelectedFontSizeIndex}");
+                    //  ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -69,7 +71,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     selectedResolutionIndex = value;
                     OnPropertyChanged(nameof(SelectedResolutionIndex));
-                    MessageBox.Show($"res index: {selectedResolutionIndex}");
+                    //  ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -81,4 +83,3 @@ namespace PhotoPreparation.ViewModels
         public void SetSelectedFontSize(int fontSize) => SelectedFontSizeIndex = fontSize;
     }
 }
-

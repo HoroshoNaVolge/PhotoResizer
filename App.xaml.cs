@@ -1,11 +1,9 @@
-﻿using PhotoPreparation.ViewModels;
+﻿using PhotoPreparation.Helpers;
+using PhotoPreparation.ViewModels;
 using PhotoPreparation.Views;
 using Serilog;
-using System.Configuration;
-using System.Data;
 using System.IO;
 using System.Windows;
-using System.Windows.Threading;
 
 namespace PhotosPreparation
 {
@@ -17,18 +15,21 @@ namespace PhotosPreparation
         public App()
         {
             ConfigureLogger();
-            ConfigureViewsAndModels();
+            ConfigureViewsAndModels(out Window mainWindow);
+            Run(mainWindow);
         }
 
-        private static void ConfigureViewsAndModels()
+        static new void Run(Window window) => window.Show();
+        private static void ConfigureViewsAndModels(out Window mainWindow)
         {
-            var settingsViewModel = new SettingsViewModel();
-            var settingsView = new SettingsView(settingsViewModel);
 
-            var mainViewModel = new MainViewModel(settingsViewModel, settingsView);
-            var mainWindow = new MainWindow(mainViewModel);
+            var configurationService = new ConfigurationService(new SettingsViewModel());
 
-            mainWindow.Show();
+            var settingsView = new SettingsView(configurationService.SettingsViewModel);
+
+            var mainViewModel = new MainViewModel(configurationService.SettingsViewModel, settingsView);
+
+            mainWindow = new MainWindow(mainViewModel);
         }
 
         private static void ConfigureLogger()

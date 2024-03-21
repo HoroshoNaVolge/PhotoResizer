@@ -10,14 +10,13 @@ namespace PhotoPreparation.Views
     /// </summary>
     public partial class SettingsView : Window
     {
-        private bool isOpen = false;
         public SettingsView(SettingsViewModel settingsViewModel)
         {
             InitializeComponent();
             DataContext = settingsViewModel;
             Closing += SettingsView_Closing;
         }
-        private void SettingsView_Closing(object sender, CancelEventArgs e)
+        private void SettingsView_Closing(object? sender, CancelEventArgs e)
         {
             // Отменяем закрытие окна и скрываем его вместо этого
             e.Cancel = true;

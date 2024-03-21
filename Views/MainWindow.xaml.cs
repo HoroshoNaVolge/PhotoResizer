@@ -8,6 +8,8 @@ namespace PhotosPreparation
     {
         public MainWindow(MainViewModel mainViewModel)
         {
+            Closed += MainWindow_Closed;
+
             try
             {
                 InitializeComponent();
@@ -18,6 +20,11 @@ namespace PhotosPreparation
                 // Обработка ошибки и вывод сообщения
                 System.Windows.MessageBox.Show($"An error occurred in MainWindow constructor: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void MainWindow_Closed(object? sender, EventArgs e)
+        {
+            System.Windows.Application.Current.Shutdown();
         }
     }
 }

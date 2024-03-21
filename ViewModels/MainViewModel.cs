@@ -16,6 +16,7 @@ using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using PhotoPreparation.Views;
 using File = System.IO.File;
 using System.Text.Json.Serialization;
+using System.Text;
 
 namespace PhotoPreparation.ViewModels
 {
@@ -27,6 +28,7 @@ namespace PhotoPreparation.ViewModels
         private static readonly object lockObject = new();
 
         private string? statusText = MessageConstants.Welcome;
+        private double progressValue;
 
         public MainViewModel(SettingsViewModel settingsViewModel, SettingsView settingsView)
         {
@@ -38,6 +40,18 @@ namespace PhotoPreparation.ViewModels
             OpenSettingsCommand = new RelayCommand(OpenSettings);
         }
 
+        public double ProgressValue
+        {
+            get { return progressValue; }
+            set
+            {
+                if (progressValue != value)
+                {
+                    progressValue = value;
+                    OnPropertyChanged(nameof(ProgressValue)); // Вызов события PropertyChanged
+                }
+            }
+        }
 
         [JsonIgnore]
         public string? StatusText
@@ -65,6 +79,7 @@ namespace PhotoPreparation.ViewModels
 
         private async void SelectImage()
         {
+            ProgressValue = 0.0;
             OpenFileDialog openFileDialog = new()
             {
                 Title = MessageConstants.SelectImageTitle,
@@ -92,7 +107,7 @@ namespace PhotoPreparation.ViewModels
 
                 StatusText = processedFilesFailedCount > 0
                 ? $"Обработка папки {inputFolderPath} завершена за {(double)stopwatch.ElapsedMilliseconds / 1000} секунд\n{processedFilesFailedCount} ФОТО БЕЗ МЕТАДАННЫХ.\n"
-                : $"Обработка папки {inputFolderPath} завершена за {(double)stopwatch.ElapsedMilliseconds / 1000} секунд";
+                : $"Обработка папки {inputFolderPath} завершена\n ушло времени: {(double)stopwatch.ElapsedMilliseconds / 1000} секунд";
 
                 if (settingsViewModel.OpenFolderAfterProcessing)
                 {
@@ -176,11 +191,10 @@ namespace PhotoPreparation.ViewModels
 
             var counterSuccess = 0;
             var counterFailure = 0;
+            StringBuilder stringBuilder = new();
 
-
-            await Task.Run(async () =>
+            await Task.Run(() =>
                 {
-
                     Parallel.ForEach(files, filePath =>
                 {
                     string fileName = Path.GetFileName(filePath);
@@ -251,24 +265,29 @@ namespace PhotoPreparation.ViewModels
                         }
                     }
 
-                    //catch (Exception ex)
-                    //{
-                    //    Log.Error(ex, $"Неизвестная ошибка: {filePath} {ex.Message}");
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Неизвестная ошибка: {filePath} {ex.Message}");
 
-                    //    lock (lockObject)
-                    //    {
-                    //        var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
-                    //        if (!File.Exists(filePathWithoutExtension))
-                    //            File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
-                    //        processedFiles.Add(filePath);
-                    //        StatusText = $"Неизвестная ошибка при работе с файлом {Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}")}";
-                    //    }
-                    //}
+                        lock (lockObject)
+                        {
+                            var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
+                            if (!File.Exists(filePathWithoutExtension))
+                                File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+                            processedFiles.Add(filePath);
+                            StatusText = $"Неизвестная ошибка при работе с файлом {Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}")}";
+                        }
+                    }
 
-
+                    finally
+                    {
+                        ProgressValue += 1.0 / files.Length * 100.0;
+                        StatusText = $"Обработано {counterSuccess} файлов из {files.Length}";
+                    }
+                });
+                    ProgressValue = 100;
                 });
 
-                });
         }
 
         private void SelectExifer()

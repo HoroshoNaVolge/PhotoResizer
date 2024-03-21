@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PhotoPreparation.Views"
         mc:Ignorable="d"
-        Title="Настройки" Height="180" Width="395" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow">
+        Title="Настройки" Height="200" Width="395" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -28,7 +28,7 @@
         <!-- Комбобокс с разрешениями -->
         <ComboBox x:Name="ResolutionComboBox" 
           SelectedIndex="{Binding SelectedResolutionIndex}" 
-          HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" Width="74" Margin="184,10,0,0">
+          HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" Width="101" Margin="184,10,0,0">
             <ComboBoxItem Content="640x480" IsSelected="True"/>
             <ComboBoxItem Content="800x600"/>
             <ComboBoxItem Content="1024x768"/>
