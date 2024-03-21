@@ -88,10 +88,10 @@ namespace PhotoPreparation.Helpers
                         {
                             lock (lockObject)
                             {
-                                var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1} {filePath}{MessageConstants.JpgExtension}");
+                                var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1} {fileName}");
 
                                 if (!File.Exists(filePathWithoutExtension))
-                                    File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure} {filePath}{MessageConstants.JpgExtension}"));
+                                    File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure} {fileName}"));
                             }
                         }
                     }
@@ -101,12 +101,12 @@ namespace PhotoPreparation.Helpers
 
                         lock (lockObject)
                         {
-                            var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1} {filePath}{MessageConstants.JpgExtension}");
+                            var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1} {fileName}");
 
                             if (!File.Exists(filePathWithoutExtension))
-                                File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
+                                File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure} {fileName}"));
 
-                            OnStatusTextChanged($"Ошибка при работе с EXIF файла {Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure} {filePath}{MessageConstants.JpgExtension}")}");
+                            OnStatusTextChanged($"Ошибка при работе с EXIF файла {Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure} {fileName}")}");
                         }
                     }
 
