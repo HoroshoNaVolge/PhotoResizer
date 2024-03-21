@@ -21,7 +21,12 @@ namespace PhotoPreparation.Helpers
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (value is string stringValue)
+            {
+                if (DateTime.TryParseExact(stringValue, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+                    return result;
+            }
+            throw new ArgumentException("Invalid value for DateTime conversion");
         }
     }
 }
