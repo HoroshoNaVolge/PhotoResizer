@@ -2,7 +2,6 @@
 using GalaSoft.MvvmLight.CommandWpf;
 using Serilog;
 
-using PhotoPreparation;
 using PhotoPreparation.Helpers;
 
 using System.Diagnostics;
@@ -18,6 +17,8 @@ using File = System.IO.File;
 using System.Text.Json.Serialization;
 using System.Text;
 
+using Visibility = System.Windows.Visibility;
+
 namespace PhotoPreparation.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
@@ -28,7 +29,10 @@ namespace PhotoPreparation.ViewModels
         private static readonly object lockObject = new();
 
         private string? statusText = MessageConstants.Welcome;
+        private string? statusNoDateTakenProcessed;
+
         private double progressValue;
+        private Visibility progressBarVisibility = Visibility.Hidden;
 
         public MainViewModel(SettingsViewModel settingsViewModel, SettingsView settingsView)
         {
@@ -49,7 +53,21 @@ namespace PhotoPreparation.ViewModels
                 if (progressValue != value)
                 {
                     progressValue = value;
-                    OnPropertyChanged(nameof(ProgressValue)); // Вызов события PropertyChanged
+                    OnPropertyChanged(nameof(ProgressValue));
+                    ProgressBarVisibility = progressValue > 0 && progressValue <= 100 ? Visibility.Visible : Visibility.Hidden;
+                }
+            }
+        }
+
+        public Visibility ProgressBarVisibility
+        {
+            get { return progressBarVisibility; }
+            set
+            {
+                if (progressBarVisibility != value)
+                {
+                    progressBarVisibility = value;
+                    OnPropertyChanged(nameof(ProgressBarVisibility));
                 }
             }
         }
@@ -67,6 +85,20 @@ namespace PhotoPreparation.ViewModels
                 }
             }
         }
+
+        public string? StatusNoDateTakenProcessed
+        {
+            get { return statusNoDateTakenProcessed; }
+            set
+            {
+                if (statusNoDateTakenProcessed != value)
+                {
+                    statusNoDateTakenProcessed = value;
+                    OnPropertyChanged(nameof(StatusNoDateTakenProcessed));
+                }
+            }
+        }
+
         [JsonIgnore]
         public ICommand SelectImageCommand { get; }
         [JsonIgnore]
@@ -80,7 +112,8 @@ namespace PhotoPreparation.ViewModels
 
         private async void SelectImage()
         {
-            ProgressValue = 0.0;
+
+
             OpenFileDialog openFileDialog = new()
             {
                 Title = MessageConstants.SelectImageTitle,
@@ -98,17 +131,25 @@ namespace PhotoPreparation.ViewModels
                 int maxHeight = imageResolution.Item2;
 
                 StatusText = MessageConstants.ProcessingImagesStatus;
+                ProgressValue = 0.0;
+                StatusNoDateTakenProcessed = null;
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
-                await ProcessImagesAsync(inputFolderPath, maxWidth, maxHeight);
+
+                bool imageProcsessPerformed = await ProcessImagesAsync(inputFolderPath, maxWidth, maxHeight);
+
+                if (!imageProcsessPerformed)
+                    return;
 
                 var processedFilesFailedCount = Directory.GetFiles(inputFolderPath).Where(filePath => filePath.Contains(MessageConstants.NoMetaData)).Count();
 
                 stopwatch.Stop();
 
-                StatusText = processedFilesFailedCount > 0
-                ? $"Обработка папки {inputFolderPath} завершена за {(double)stopwatch.ElapsedMilliseconds / 1000} секунд\n{processedFilesFailedCount} ФОТО БЕЗ МЕТАДАННЫХ.\n"
-                : $"Обработка папки {inputFolderPath} завершена\n ушло времени: {(double)stopwatch.ElapsedMilliseconds / 1000} секунд";
+
+                StatusText = "Обработка папки " + inputFolderPath + " завершена за " + ((double)stopwatch.ElapsedMilliseconds / 1000) + " секунд\n\n";
+
+                if (processedFilesFailedCount > 0)
+                    StatusNoDateTakenProcessed = $"\n\n{processedFilesFailedCount} фото без даты съёмки.";
 
                 if (settingsViewModel.OpenFolderAfterProcessing)
                 {
@@ -153,9 +194,8 @@ namespace PhotoPreparation.ViewModels
             }
         }
 
-        private async Task ProcessImagesAsync(string inputFolderPath, int maxWidth, int maxHeight)
+        private async Task<bool> ProcessImagesAsync(string inputFolderPath, int maxWidth, int maxHeight)
         {
-
             var selectedFontSize = ImageResizer.GetFontSize(settingsViewModel.SelectedFontSizeIndex);
 
             var tempOutputFolderPath = Path.Combine(inputFolderPath, "ProcessedTemp");
@@ -173,11 +213,13 @@ namespace PhotoPreparation.ViewModels
                     if (result == DialogResult.No)
                     {
                         StatusText = MessageConstants.CancelledByUser;
-                        return;
+                        return false;
                     }
                     Directory.Delete(finalOutputFolderPath, true);
                 }
             }
+
+
 
             string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
 
@@ -193,15 +235,6 @@ namespace PhotoPreparation.ViewModels
             var counterSuccess = 0;
             var counterFailure = 0;
             StringBuilder stringBuilder = new();
-
-
-
-
-
-            MessageBox.Show(selectedFontSize.ToString());
-
-
-
 
             await Task.Run(() =>
                 {
@@ -298,6 +331,7 @@ namespace PhotoPreparation.ViewModels
                 });
                     ProgressValue = 100;
                 });
+            return true;
 
         }
 

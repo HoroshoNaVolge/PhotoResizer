@@ -6,8 +6,11 @@ namespace PhotoPreparation.ViewModels
     public class SettingsViewModel : INotifyPropertyChanged
     {
         private bool deleteOriginalPhotos;
+
         private bool openFolderAfterProcessing;
+
         private int selectedFontSizeIndex;
+
         private int selectedResolutionIndex;
 
         public bool DeleteOriginalPhotos

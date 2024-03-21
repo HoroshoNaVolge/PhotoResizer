@@ -44,10 +44,13 @@
         </StackPanel>
 
         <!-- Прогресс-бар -->
-        <ProgressBar Grid.Row="1" Height="10" Margin="10" Value="{Binding ProgressValue}" Maximum="100"/>
+        <ProgressBar Grid.Row="1" Height="10" Margin="10" Value="{Binding ProgressValue}" Maximum="100" Visibility="{Binding ProgressBarVisibility}"/>
 
         <!-- TextBlock для отображения статуса -->
-        <TextBlock Text="{Binding StatusText}" Grid.Row="2" Margin="10" TextWrapping="Wrap"
-                   HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Times New Roman"/>
+        <TextBlock Grid.Row="2" Margin="10" TextWrapping="Wrap"
+           HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Times New Roman">
+    <Run Text="{Binding StatusText}" />
+    <Run Text="{Binding StatusNoDateTakenProcessed}" Foreground="#FFC72313"/>
+        </TextBlock>
     </Grid>
 </Window>

@@ -24,11 +24,11 @@
             <ComboBoxItem Content="18"/>
             <ComboBoxItem Content="22"/>
         </ComboBox>
-        <TextBlock Grid.Row="1" Margin="10,10,235,9"><Run Language="ru-ru" Text="Целевое разрешение фото"/></TextBlock>
+        <TextBlock Grid.Row="1" Margin="10,10,235,9" Text="Целевое разрешение"/>
         <!-- Комбобокс с разрешениями -->
         <ComboBox x:Name="ResolutionComboBox" 
           SelectedIndex="{Binding SelectedResolutionIndex}" 
-          HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" Width="101" Margin="184,10,0,0">
+          HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" Width="101" Margin="177,10,0,0">
             <ComboBoxItem Content="640x480" IsSelected="True"/>
             <ComboBoxItem Content="800x600"/>
             <ComboBoxItem Content="1024x768"/>

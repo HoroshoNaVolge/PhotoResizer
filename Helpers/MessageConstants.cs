@@ -34,7 +34,7 @@ namespace PhotoPreparation.Helpers
 
         public const string ExifDateTimeFormat = "yyyy:MM:dd HH:mm:ss";
 
-        public const string CancelledByUser = "Выбор отменён пользователем";
+        public const string CancelledByUser = "Операция отменена пользователем";
 
         public const string BadExtension = "Недопустимый формат файла";
 

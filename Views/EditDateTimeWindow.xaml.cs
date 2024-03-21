@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Serilog;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -8,23 +9,23 @@ namespace PhotoPreparation
 {
     public partial class EditDateTimeWindow : Window, INotifyPropertyChanged
     {
-        private string selectedImagePath;
+        private readonly string selectedImagePath;
 
-        private DateTime _newDateTime;
+        private DateTime newDateTime;
         public DateTime NewDateTime
         {
-            get { return _newDateTime; }
+            get { return newDateTime; }
             set
             {
-                if (_newDateTime != value)
+                if (newDateTime != value)
                 {
-                    _newDateTime = value;
+                    newDateTime = value;
                     OnPropertyChanged(nameof(NewDateTime));
                 }
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -59,6 +60,7 @@ namespace PhotoPreparation
             }
             catch (Exception ex)
             {
+                Log.Error(ex, "Ошибка при загрузке изображения");
                 System.Windows.MessageBox.Show($"Ошибка при загрузке изображения: {ex.Message}");
             }
         }
