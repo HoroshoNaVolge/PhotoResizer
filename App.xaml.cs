@@ -18,21 +18,18 @@ namespace PhotoPreparation
         public App()
         {
             ConfigureLogger();
-            ConfigureViewsAndModels(out Window mainWindow);
-            Run(mainWindow);
+            ConfigureViewsAndModels();
         }
 
-        static new void Run(Window window) => window.Show();
-        private void ConfigureViewsAndModels(out Window mainWindow)
+        private void ConfigureViewsAndModels()
         {
 
             var configurationService = new ConfigurationService();
 
             var settingsView = new SettingsView(ConfigurationService.LoadSettingsConfiguration());
 
-            MainViewModel = new MainViewModel(ConfigurationService.LoadSettingsConfiguration(), settingsView);
+            MainViewModel = new MainViewModel(ConfigurationService.LoadSettingsConfiguration(), settingsView, new ImageProcessingService(ConfigurationService.LoadSettingsConfiguration())); // переписать эту ёбань
 
-            mainWindow = new MainWindow();
         }
 
         private static void ConfigureLogger()

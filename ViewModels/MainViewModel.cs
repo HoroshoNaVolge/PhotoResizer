@@ -25,8 +25,9 @@ namespace PhotoPreparation.ViewModels
     {
         private readonly SettingsViewModel settingsViewModel;
         private readonly SettingsView settingsView;
+        private readonly ImageProcessingService imageProcessingService;
 
-        private static readonly object lockObject = new();
+
 
         private string? statusText = MessageConstants.Welcome;
         private string? statusNoDateTakenProcessed;
@@ -34,10 +35,14 @@ namespace PhotoPreparation.ViewModels
         private double progressValue;
         private Visibility progressBarVisibility = Visibility.Hidden;
 
-        public MainViewModel(SettingsViewModel settingsViewModel, SettingsView settingsView)
+        public MainViewModel(SettingsViewModel settingsViewModel, SettingsView settingsView, ImageProcessingService imageProcessingService)
         {
             this.settingsViewModel = settingsViewModel;
             this.settingsView = settingsView;
+            this.imageProcessingService = imageProcessingService;
+
+            imageProcessingService.StatusTextChanged += OnStatusTextChanged;
+            imageProcessingService.ProgressValueChanged += OnProgressValueChanged;
 
             SelectImageCommand = new RelayCommand(SelectImage);
             SelectExiferCommand = new RelayCommand(SelectExifer);
@@ -112,8 +117,6 @@ namespace PhotoPreparation.ViewModels
 
         private async void SelectImage()
         {
-
-
             OpenFileDialog openFileDialog = new()
             {
                 Title = MessageConstants.SelectImageTitle,
@@ -125,7 +128,7 @@ namespace PhotoPreparation.ViewModels
                 string inputFolderPath = Path.GetDirectoryName(openFileDialog.FileName)!;
                 string outputFolderPath = Path.Combine(inputFolderPath, MessageConstants.OutputFolderName);
 
-                var imageResolution = ImageResizer.GetResolution(settingsViewModel.SelectedResolutionIndex);
+                var imageResolution = ImageProcessingService.GetResolution(settingsViewModel.SelectedResolutionIndex);
 
                 int maxWidth = imageResolution.Item1;
                 int maxHeight = imageResolution.Item2;
@@ -136,12 +139,18 @@ namespace PhotoPreparation.ViewModels
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                bool imageProcsessPerformed = await ProcessImagesAsync(inputFolderPath, maxWidth, maxHeight);
+                bool imageProcsessPerformed = await imageProcessingService.ProcessImagesAsync(inputFolderPath, maxWidth, maxHeight);
+                ProgressValue = 100.0;
 
                 if (!imageProcsessPerformed)
                     return;
 
-                var processedFilesFailedCount = Directory.GetFiles(inputFolderPath).Where(filePath => filePath.Contains(MessageConstants.NoMetaData)).Count();
+
+                var processedFilesFailedCount = 0;
+                if (!settingsViewModel.DeleteOriginalPhotos)
+                    processedFilesFailedCount = Directory.GetFiles(outputFolderPath).Where(filePath => filePath.Contains(MessageConstants.NoMetaData)).Count();
+                else
+                    processedFilesFailedCount = Directory.GetFiles(inputFolderPath).Where(filePath => filePath.Contains(MessageConstants.NoMetaData)).Count();
 
                 stopwatch.Stop();
 
@@ -192,147 +201,6 @@ namespace PhotoPreparation.ViewModels
                     Directory.Delete(Path.Combine(inputFolderPath, "ProcessedTemp"), true);
                 }
             }
-        }
-
-        private async Task<bool> ProcessImagesAsync(string inputFolderPath, int maxWidth, int maxHeight)
-        {
-            var selectedFontSize = ImageResizer.GetFontSize(settingsViewModel.SelectedFontSizeIndex);
-
-            var tempOutputFolderPath = Path.Combine(inputFolderPath, "ProcessedTemp");
-            var finalOutputFolderPath = inputFolderPath;
-
-            if (settingsViewModel.DeleteOriginalPhotos)
-                finalOutputFolderPath = tempOutputFolderPath;
-            else
-            {
-                finalOutputFolderPath = Path.Combine(inputFolderPath, MessageConstants.OutputFolderName);
-
-                if (Directory.Exists(finalOutputFolderPath) && Directory.EnumerateFileSystemEntries(finalOutputFolderPath).Any())
-                {
-                    var result = MessageBox.Show("Папка Обработанные фото уже существует и не пустая. Перезаписать обработанные файлы?", "Предупреждение", MessageBoxButtons.YesNo);
-                    if (result == DialogResult.No)
-                    {
-                        StatusText = MessageConstants.CancelledByUser;
-                        return false;
-                    }
-                    Directory.Delete(finalOutputFolderPath, true);
-                }
-            }
-
-
-
-            string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
-
-            Directory.CreateDirectory(finalOutputFolderPath);
-
-            // Получение списка уже обработанных файлов в выходной папке
-            HashSet<string> processedFiles = new(Directory.GetFiles(finalOutputFolderPath));
-
-            string[] files = Directory.GetFiles(inputFolderPath, "*.*", SearchOption.TopDirectoryOnly)
-                                    .Where(filePath => allowedExtensions.Contains(Path.GetExtension(filePath)?.ToLower()))
-                                    .ToArray();
-
-            var counterSuccess = 0;
-            var counterFailure = 0;
-            StringBuilder stringBuilder = new();
-
-            await Task.Run(() =>
-                {
-                    Parallel.ForEach(files, filePath =>
-                {
-                    string fileName = Path.GetFileName(filePath);
-                    try
-                    {
-                        using ExifReader reader = new(filePath);
-                        if (reader.GetTagValue(ExifTags.DateTimeOriginal, out DateTime dateTime))
-                        {
-                            using Image originalImage = Image.FromFile(filePath);
-                            {
-                                var newWidth = Math.Min(originalImage.Width, maxWidth);
-                                var newHeight = Math.Min(originalImage.Height, maxHeight);
-
-                                using Image resizedImage = ImageResizer.ResizeImage(originalImage, newWidth, newHeight);
-                                using Graphics g = Graphics.FromImage(resizedImage);
-                                var font = new Font("Arial", selectedFontSize, FontStyle.Bold);
-
-                                var watermark = dateTime.ToString("dd/MM/yyyy HH:mm");
-
-                                SizeF textSize = g.MeasureString(watermark, font);
-
-                                // Координаты для отрисовки текста в правом нижнем углу
-                                var x = resizedImage.Width - (int)textSize.Width - 10;
-                                var y = resizedImage.Height - (int)textSize.Height - 10;
-                                Point location = new(x, y);
-
-                                g.DrawImage(resizedImage, 0, 0);
-                                g.DrawString(watermark, font, Brushes.White, location);
-
-                                foreach (PropertyItem propertyItem in originalImage.PropertyItems)
-                                    resizedImage.SetPropertyItem(propertyItem);
-
-                                lock (lockObject)
-                                {
-                                    ++counterSuccess;
-                                    resizedImage.Save(Path.Combine(finalOutputFolderPath, fileName), ImageFormat.Jpeg);
-                                    resizedImage.Dispose();
-                                }
-
-                                lock (lockObject)
-                                    processedFiles.Add(filePath);
-                            }
-                        }
-
-                        else
-                        {
-                            lock (lockObject)
-                            {
-                                var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
-                                if (!File.Exists(filePathWithoutExtension))
-                                    File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
-                                processedFiles.Add(Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
-                            }
-                        }
-
-                    }
-                    catch (ExifLibException ex)
-                    {
-                        Log.Error(ex, $"Ошибка работы с EXIF: {filePath} {ex.Message}");
-
-
-                        lock (lockObject)
-                        {
-                            var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
-                            if (!File.Exists(filePathWithoutExtension))
-                                File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
-                            processedFiles.Add(filePath);
-                            StatusText = $"Ошибка при работе с EXIF файла {Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}")}";
-                        }
-                    }
-
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, $"Неизвестная ошибка: {filePath} {ex.Message}");
-
-                        lock (lockObject)
-                        {
-                            var filePathWithoutExtension = Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {counterFailure + 1}{MessageConstants.JpgExtension}");
-                            if (!File.Exists(filePathWithoutExtension))
-                                File.Copy(filePath, Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}"));
-                            processedFiles.Add(filePath);
-                            StatusText = $"Неизвестная ошибка при работе с файлом {Path.Combine(finalOutputFolderPath, $"{MessageConstants.NoMetaData} {++counterFailure}{MessageConstants.JpgExtension}")}";
-                        }
-                    }
-
-                    finally
-                    {
-                        ProgressValue += 1.0 / files.Length * 100.0;
-                        StatusText = $"Обработано {counterSuccess} файлов из {files.Length}";
-                    }
-                });
-                    ProgressValue = 100;
-                });
-            return true;
-
         }
 
         private void SelectExifer()
@@ -412,5 +280,8 @@ namespace PhotoPreparation.ViewModels
         }
 
         protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        private void OnStatusTextChanged(string statusText) => StatusText = statusText;
+        private void OnProgressValueChanged(double progressValue) => ProgressValue += progressValue;
     }
 }
