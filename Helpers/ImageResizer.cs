@@ -21,9 +21,9 @@ namespace PhotoPreparation.Helpers
             return newImage;
         }
 
-        public static (int, int) GetResolution(int comboboxIndex)
+        public static (int, int) GetResolution(int index)
         {
-            return comboboxIndex switch
+            return index switch
             {
                 0 => (640, 480),
                 1 => (800, 600),
@@ -33,16 +33,16 @@ namespace PhotoPreparation.Helpers
             };
         }
 
-        public static int GetFontSize(int comboboxIndex)
+        public static int GetFontSize(int index)
         {
-            return comboboxIndex switch
+            return index switch
             {
-                1 => 10,
-                2 => 12,
-                3 => 14,
-                4 => 16,
-                5 => 18,
-                6 => 22,
+                0 => 10,
+                1 => 12,
+                2 => 14,
+                3 => 16,
+                4 => 18,
+                5 => 22,
                 _ => 14
             };
         }

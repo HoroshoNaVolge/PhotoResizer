@@ -4,35 +4,28 @@ using System.Text.Json;
 
 namespace PhotoPreparation.Helpers
 {
-    public class ConfigurationService(SettingsViewModel settingsViewModel)
+    public class ConfigurationService()
     {
-        private readonly string filePath = "settings.json";
-        private SettingsViewModel settingsViewModel = settingsViewModel;
+        private static readonly string filePath = "settings.json";
 
+        private static SettingsViewModel? settingsViewModel;
 
-        public SettingsViewModel SettingsViewModel => settingsViewModel;
-
-        public void SaveConfiguration()
+        public static void SaveConfiguration()
         {
             string json = JsonSerializer.Serialize(settingsViewModel);
             File.WriteAllText(filePath, json);
         }
 
-        public void LoadConfiguration()
+        public static SettingsViewModel LoadSettingsConfiguration()
         {
-            if (File.Exists(filePath))
-            {
-                string json = File.ReadAllText(filePath);
-                settingsViewModel = JsonSerializer.Deserialize<SettingsViewModel>(json) ?? throw new NullReferenceException(nameof(SettingsViewModel));
-            }
-            else
-                settingsViewModel = new SettingsViewModel
-                {
-                    SelectedFontSizeIndex = 14, // Установим начальное значение по умолчанию
-                    OpenFolderAfterProcessing = true,
-                    SelectedResolutionIndex = 0,
-                    DeleteOriginalPhotos = false,
-                };
+            if (settingsViewModel != null)
+                return settingsViewModel;
+
+            if (!File.Exists(filePath))
+                return SettingsViewModel.GetDefaultSettingsViewModel();
+
+            string json = File.ReadAllText(filePath);
+            return settingsViewModel = JsonSerializer.Deserialize<SettingsViewModel>(json) ?? SettingsViewModel.GetDefaultSettingsViewModel();
         }
     }
 }

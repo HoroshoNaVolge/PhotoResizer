@@ -10,16 +10,6 @@ namespace PhotoPreparation.ViewModels
         private int selectedFontSizeIndex;
         private int selectedResolutionIndex;
 
-
-        public SettingsViewModel()
-        {
-            SelectedFontSizeIndex = 14; // Установим начальное значение по умолчанию
-            OpenFolderAfterProcessing = true;
-            SelectedResolutionIndex = 0;
-            DeleteOriginalPhotos = false;
-
-        }
-
         public bool DeleteOriginalPhotos
         {
             get { return deleteOriginalPhotos; }
@@ -29,7 +19,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     deleteOriginalPhotos = value;
                     OnPropertyChanged(nameof(DeleteOriginalPhotos));
-                  //  ConfigurationService.SaveConfiguration();
+                    ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -43,7 +33,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     openFolderAfterProcessing = value;
                     OnPropertyChanged(nameof(OpenFolderAfterProcessing));
-                    //  ConfigurationService.SaveConfiguration();
+                    ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -57,7 +47,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     selectedFontSizeIndex = value;
                     OnPropertyChanged(nameof(SelectedFontSizeIndex));
-                    //  ConfigurationService.SaveConfiguration();
+                    ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -71,7 +61,7 @@ namespace PhotoPreparation.ViewModels
                 {
                     selectedResolutionIndex = value;
                     OnPropertyChanged(nameof(SelectedResolutionIndex));
-                    //  ConfigurationService.SaveConfiguration();
+                    ConfigurationService.SaveConfiguration();
                 }
             }
         }
@@ -80,6 +70,12 @@ namespace PhotoPreparation.ViewModels
 
         protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        public void SetSelectedFontSize(int fontSize) => SelectedFontSizeIndex = fontSize;
+        public static SettingsViewModel GetDefaultSettingsViewModel() => new()
+        {
+            SelectedFontSizeIndex = 14,
+            OpenFolderAfterProcessing = true,
+            SelectedResolutionIndex = 0,
+            DeleteOriginalPhotos = false,
+        };
     }
 }

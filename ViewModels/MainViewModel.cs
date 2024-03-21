@@ -2,7 +2,7 @@
 using GalaSoft.MvvmLight.CommandWpf;
 using Serilog;
 
-using PhotosPreparation;
+using PhotoPreparation;
 using PhotoPreparation.Helpers;
 
 using System.Diagnostics;
@@ -40,6 +40,7 @@ namespace PhotoPreparation.ViewModels
             OpenSettingsCommand = new RelayCommand(OpenSettings);
         }
 
+        [JsonIgnore]
         public double ProgressValue
         {
             get { return progressValue; }
@@ -193,6 +194,15 @@ namespace PhotoPreparation.ViewModels
             var counterFailure = 0;
             StringBuilder stringBuilder = new();
 
+
+
+
+
+            MessageBox.Show(selectedFontSize.ToString());
+
+
+
+
             await Task.Run(() =>
                 {
                     Parallel.ForEach(files, filePath =>
@@ -211,6 +221,7 @@ namespace PhotoPreparation.ViewModels
                                 using Image resizedImage = ImageResizer.ResizeImage(originalImage, newWidth, newHeight);
                                 using Graphics g = Graphics.FromImage(resizedImage);
                                 var font = new Font("Arial", selectedFontSize, FontStyle.Bold);
+
                                 var watermark = dateTime.ToString("dd/MM/yyyy HH:mm");
 
                                 SizeF textSize = g.MeasureString(watermark, font);

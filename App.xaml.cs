@@ -4,14 +4,17 @@ using PhotoPreparation.Views;
 using Serilog;
 using System.IO;
 using System.Windows;
+using Application = System.Windows.Application;
 
-namespace PhotosPreparation
+namespace PhotoPreparation
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : System.Windows.Application
+    public partial class App : Application
     {
+        public MainViewModel? MainViewModel { get; private set; }
+
         public App()
         {
             ConfigureLogger();
@@ -20,16 +23,16 @@ namespace PhotosPreparation
         }
 
         static new void Run(Window window) => window.Show();
-        private static void ConfigureViewsAndModels(out Window mainWindow)
+        private void ConfigureViewsAndModels(out Window mainWindow)
         {
 
-            var configurationService = new ConfigurationService(new SettingsViewModel());
+            var configurationService = new ConfigurationService();
 
-            var settingsView = new SettingsView(configurationService.SettingsViewModel);
+            var settingsView = new SettingsView(ConfigurationService.LoadSettingsConfiguration());
 
-            var mainViewModel = new MainViewModel(configurationService.SettingsViewModel, settingsView);
+            MainViewModel = new MainViewModel(ConfigurationService.LoadSettingsConfiguration(), settingsView);
 
-            mainWindow = new MainWindow(mainViewModel);
+            mainWindow = new MainWindow();
         }
 
         private static void ConfigureLogger()

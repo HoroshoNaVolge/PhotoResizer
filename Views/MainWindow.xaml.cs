@@ -1,19 +1,21 @@
 ﻿using System.Windows;
 using PhotoPreparation.ViewModels;
 using PhotoPreparation.Views;
+using Application = System.Windows.Application;
 
-namespace PhotosPreparation
+namespace PhotoPreparation
 {
     public partial class MainWindow : Window
     {
-        public MainWindow(MainViewModel mainViewModel)
+
+        public MainWindow()
         {
             Closed += MainWindow_Closed;
 
             try
             {
                 InitializeComponent();
-                DataContext = mainViewModel;
+                DataContext = ((App)Application.Current).MainViewModel;
             }
             catch (Exception ex)
             {

@@ -4,7 +4,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Xceed.Wpf.Toolkit;
 
-namespace PhotosPreparation
+namespace PhotoPreparation
 {
     public partial class EditDateTimeWindow : Window, INotifyPropertyChanged
     {
