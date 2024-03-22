@@ -14,17 +14,19 @@ namespace PhotoPreparation
     public partial class App : Application
     {
         public MainViewModel? MainViewModel { get; private set; }
+        public ConfigurationService ConfigurationService { get; private set; }
 
         public App()
         {
+            ConfigurationService = new ConfigurationService();
             ConfigureLogger();
             ConfigureViewsAndModels();
+
+            Exit += App_Exit;
         }
 
         private void ConfigureViewsAndModels()
         {
-
-            var configurationService = new ConfigurationService();
 
             var settingsView = new SettingsView(ConfigurationService.LoadSettingsConfiguration());
 
@@ -40,5 +42,7 @@ namespace PhotoPreparation
                 .WriteTo.File(logDirectory, rollingInterval: RollingInterval.Day)
                 .CreateLogger();
         }
+
+        private void App_Exit(object sender, ExitEventArgs e) => ConfigurationService.SaveConfiguration();
     }
 }

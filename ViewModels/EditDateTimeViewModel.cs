@@ -50,6 +50,5 @@ namespace PhotoPreparation.ViewModels
         }
 
         protected virtual void OnSaveCompleted(EventArgs e) => SaveCompleted?.Invoke(this, e);
-
     }
 }

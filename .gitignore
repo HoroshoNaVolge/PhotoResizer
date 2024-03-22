@@ -396,3 +396,15 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+bin/Release/net8.0-windows/publish/scriipt.iss
+bin/Release/net8.0-windows/publish/PhotoResizer.runtimeconfig.json
+bin/Release/net8.0-windows/publish/PhotoResizer.pdb
+bin/Release/net8.0-windows/publish/PhotoResizer.exe
+bin/Release/net8.0-windows/publish/PhotoResizer.dll
+bin/Release/net8.0-windows/publish/PhotoResizer.deps.json
+bin/Release/net8.0-windows/publish/Output/mysetup.exe
+bin/Release/net8.0-windows/PhotoResizer.runtimeconfig.json
+bin/Release/net8.0-windows/PhotoResizer.pdb
+bin/Release/net8.0-windows/PhotoResizer.exe
+bin/Release/net8.0-windows/PhotoResizer.dll
+bin/Release/net8.0-windows/PhotoResizer.deps.json

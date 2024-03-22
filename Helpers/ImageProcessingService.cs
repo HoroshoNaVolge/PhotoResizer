@@ -13,8 +13,12 @@ namespace PhotoPreparation.Helpers
         public event Action<string>? StatusTextChanged;
         public event Action<double>? ProgressValueChanged;
 
-        public async Task<bool> ProcessImagesAsync(string inputFolderPath, int maxWidth, int maxHeight)
+        public async Task<bool> ProcessImagesAsync(string inputFolderPath)
         {
+            var imageResolution = GetResolution(settingsViewModel.SelectedResolutionIndex);
+
+            int maxWidth = imageResolution.Item1;
+            int maxHeight = imageResolution.Item2;
             var selectedFontSize = GetFontSize(settingsViewModel.SelectedFontSizeIndex);
             var tempOutputFolderPath = Path.Combine(inputFolderPath, "ProcessedTemp");
             var finalOutputFolderPath = settingsViewModel.DeleteOriginalPhotos ? tempOutputFolderPath : Path.Combine(inputFolderPath, MessageConstants.OutputFolderName);
@@ -140,6 +144,51 @@ namespace PhotoPreparation.Helpers
             g.DrawImage(image, 0, 0, newWidth, newHeight);
 
             return newImage;
+        }
+
+        public void ReplaceExifData(string filePath)
+        {
+            if (filePath == null)
+            {
+                OnStatusTextChanged(MessageConstants.CancelledByUser);
+                return;
+            }
+            string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
+            string extension = Path.GetExtension(filePath).ToLower();
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                OnStatusTextChanged(MessageConstants.BadExtension);
+                return;
+            }
+
+            // TO DO: Переделать на асинхронный метод (copilot)
+            // унифицировать обработку исключений
+            try
+            {
+                using ExifReader reader = new(filePath);
+
+                reader.GetTagValue(ExifTags.DateTimeOriginal, out DateTime dateTime);
+
+                EditDateTimeWindow editDateTimeWindow = new(filePath);
+                EditDateTimeViewModel editDateTimeViewModel = new(dateTime, filePath);
+
+                editDateTimeWindow.DataContext = editDateTimeViewModel;
+
+                editDateTimeViewModel.SaveCompleted += (sender, e) => editDateTimeWindow.Close();
+
+                editDateTimeWindow.ShowDialog();
+            }
+            catch (ExifLibException ex)
+            {
+                Log.Error(ex, $"Отсутствуют метаданные: {filePath} {ex.Message}");
+                EditDateTimeWindow editWindow = new(filePath);
+                EditDateTimeViewModel viewModel = new(DateTime.MinValue, filePath);
+                editWindow.DataContext = viewModel;
+                viewModel.SaveCompleted += (sender, e) => editWindow.Close();
+                editWindow.DataContext = viewModel;
+                editWindow.ShowDialog();
+            }
         }
 
         public static (int, int) GetResolution(int index)

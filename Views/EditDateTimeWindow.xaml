@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:helpers="clr-namespace:PhotoPreparation.Helpers"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-        Title="Edit Date and Time" Height="400" Width="600" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+        Title="Редактирование даты-времени съемки фото" Height="400" Width="600" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <helpers:TimeFormatConverter x:Key="TimeFormatConverter"/>
     </Window.Resources>
@@ -26,18 +26,19 @@
         <!-- Старая дата и время -->
         <StackPanel Grid.Row="2" HorizontalAlignment="Left" Margin="10,0,0,0">
             <Label Content="Старая дата и время съёмки"/>
-            <TextBlock Text="{Binding CurrentDateTimeFormatted}" Margin="5"/>
+            <TextBlock Text="{Binding CurrentDateTimeFormatted}" Margin="5" HorizontalAlignment="Right"/>
         </StackPanel>
 
         <!-- Новая дата и время -->
         <StackPanel Grid.Row="3" HorizontalAlignment="Left" Margin="10,0,0,0">
-            <TextBlock TextWrapping="Wrap">
-        Новые дата и время съёмки (наведи и крути колесиком мыши)
-            </TextBlock>
+            <TextBlock TextWrapping="Wrap"><Run Text="Новые дата и время съёмки"/><LineBreak/><Run Text="(наведи и крути колесиком мыши)"/></TextBlock>
             <xctk:DateTimeUpDown x:Name="MyDateTimeUpDown" Value="{Binding NewDateTime}" Format="Custom" FormatString="dd-MM-yyyy HH:mm" MouseWheel="MyDateTimeUpDown_MouseWheel" Margin="5" Cursor="ScrollAll" />
         </StackPanel>
 
         <!-- Кнопка сохранения -->
-        <Button Grid.Row="3" Content="Применить" Command="{Binding SaveCommand}" Width="80" Margin="379,5,0,5" HorizontalAlignment="Left" RenderTransformOrigin="1.2,0.464"/>
+        <Button Grid.Row="3" Content="Применить" Command="{Binding SaveCommand}" Width="80" Margin="250,5,0,5" HorizontalAlignment="Left" RenderTransformOrigin="1.2,0.464"/>
     </Grid>
+    <Window.InputBindings>
+        <KeyBinding Key="Enter" Command="{Binding SaveCommand}"/>
+    </Window.InputBindings>
 </Window>

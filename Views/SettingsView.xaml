@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PhotoPreparation.Views"
         mc:Ignorable="d"
         Title="Настройки" Height="200" Width="395" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow">
     <Grid>
@@ -35,7 +34,7 @@
             <ComboBoxItem Content="1280, 1024"/>
         </ComboBox>
         <!-- Чекбокс для удаления оригинальных фотографий после обработки -->
-        <CheckBox Grid.Row="1" Margin="10,73,10,-53" Content="Удалить оригинальные фото после обработки" IsChecked="{Binding DeleteOriginalPhotos}" />
+        <CheckBox Grid.Row="1" Margin="10,73,10,-53" Content="Перезаписать оригинальные фото в папке" IsChecked="{Binding DeleteOriginalPhotos}"/>
         <!-- Чекбокс для открытия папки после обработки -->
         <CheckBox Grid.Row="1" Margin="10,93,10,-73" Content="Открыть папку с обработанными файлами автоматически" IsChecked="{Binding OpenFolderAfterProcessing}"/>
     </Grid>

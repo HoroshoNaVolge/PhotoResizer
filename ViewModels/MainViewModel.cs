@@ -1,11 +1,9 @@
-﻿using ExifLib;
-using GalaSoft.MvvmLight.CommandWpf;
+﻿using GalaSoft.MvvmLight.CommandWpf;
 using Serilog;
 
 using PhotoPreparation.Helpers;
 
 using System.Diagnostics;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Input;
 
@@ -15,7 +13,6 @@ using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using PhotoPreparation.Views;
 using File = System.IO.File;
 using System.Text.Json.Serialization;
-using System.Text;
 
 using Visibility = System.Windows.Visibility;
 
@@ -26,8 +23,6 @@ namespace PhotoPreparation.ViewModels
         private readonly SettingsViewModel settingsViewModel;
         private readonly SettingsView settingsView;
         private readonly ImageProcessingService imageProcessingService;
-
-
 
         private string? statusText = MessageConstants.Welcome;
         private string? statusNoDateTakenProcessed;
@@ -128,23 +123,17 @@ namespace PhotoPreparation.ViewModels
                 string inputFolderPath = Path.GetDirectoryName(openFileDialog.FileName)!;
                 string outputFolderPath = Path.Combine(inputFolderPath, MessageConstants.OutputFolderName);
 
-                var imageResolution = ImageProcessingService.GetResolution(settingsViewModel.SelectedResolutionIndex);
-
-                int maxWidth = imageResolution.Item1;
-                int maxHeight = imageResolution.Item2;
-
                 StatusText = MessageConstants.ProcessingImagesStatus;
                 ProgressValue = 0.0;
                 StatusNoDateTakenProcessed = null;
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                bool imageProcsessPerformed = await imageProcessingService.ProcessImagesAsync(inputFolderPath, maxWidth, maxHeight);
+                bool imageProcsessPerformed = await imageProcessingService.ProcessImagesAsync(inputFolderPath);
                 ProgressValue = 100.0;
 
                 if (!imageProcsessPerformed)
                     return;
-
 
                 var processedFilesFailedCount = 0;
                 if (!settingsViewModel.DeleteOriginalPhotos)
@@ -160,13 +149,10 @@ namespace PhotoPreparation.ViewModels
                 if (processedFilesFailedCount > 0)
                     StatusNoDateTakenProcessed = $"\n\n{processedFilesFailedCount} фото без даты съёмки.";
 
+                string folderPath = settingsViewModel.DeleteOriginalPhotos ? inputFolderPath : Path.Combine(inputFolderPath, MessageConstants.OutputFolderName);
+
                 if (settingsViewModel.OpenFolderAfterProcessing)
-                {
-                    if (settingsViewModel.DeleteOriginalPhotos)
-                        Process.Start(MessageConstants.ProcessedFolderExplorer, inputFolderPath);
-                    else
-                        Process.Start(MessageConstants.ProcessedFolderExplorer, Path.Combine(inputFolderPath, "Обработанные фото"));
-                }
+                    Process.Start(MessageConstants.ProcessedFolderExplorer, folderPath);
 
                 if (settingsViewModel.DeleteOriginalPhotos)
                 {
@@ -178,6 +164,7 @@ namespace PhotoPreparation.ViewModels
                         }
                         catch (Exception ex)
                         {
+                            Log.Error(ex, $"Ошибка при удалении файла {file}: {ex.Message}");
                             MessageBox.Show($"Ошибка при удалении файла {file}: {ex.Message}");
                         }
                     }
@@ -193,11 +180,11 @@ namespace PhotoPreparation.ViewModels
                         }
                         catch (Exception ex)
                         {
+                            Log.Error(ex, $"Ошибка при перемещении файла {procFile}: {ex.Message}");
                             MessageBox.Show($"Ошибка при перемещении файла {procFile}: {ex.Message}");
                         }
                     }
 
-                    // Удаление временной папки
                     Directory.Delete(Path.Combine(inputFolderPath, "ProcessedTemp"), true);
                 }
             }
@@ -221,8 +208,7 @@ namespace PhotoPreparation.ViewModels
 
             StatusText = MessageConstants.ProcessingExifStatus;
 
-            ReplaceExifData(filePath);
-            // Удаляем исходный файл и переименовываем обработанный файл
+            imageProcessingService.ReplaceExifData(filePath);
 
             if (!File.Exists(filePath + "modified"))
             {
@@ -235,49 +221,7 @@ namespace PhotoPreparation.ViewModels
             StatusText = MessageConstants.ProcessedExifStatusSuccess;
         }
 
-        private void ReplaceExifData(string filePath)
-        {
-            if (filePath == null)
-            {
-                StatusText = MessageConstants.CancelledByUser;
-                return;
-            }
-            string[] allowedExtensions = [".jpg", ".jpeg", ".png"];
-            string extension = Path.GetExtension(filePath).ToLower();
-
-            if (!allowedExtensions.Contains(extension))
-            {
-                StatusText = MessageConstants.BadExtension;
-                return;
-            }
-
-            // TO DO: Переделать на асинхронный метод (copilot)
-            // унифицировать обработку исключений
-            try
-            {
-                using ExifReader reader = new(filePath);
-
-                reader.GetTagValue<DateTime>(ExifTags.DateTimeOriginal, out DateTime dateTime);
-
-                EditDateTimeWindow editDateTimeWindow = new(filePath);
-                EditDateTimeViewModel editDateTimeViewModel = new(dateTime, filePath);
-                editDateTimeWindow.DataContext = editDateTimeViewModel;
-
-                editDateTimeViewModel.SaveCompleted += (sender, e) => editDateTimeWindow.Close();
-
-                editDateTimeWindow.ShowDialog();
-            }
-            catch (ExifLibException ex)
-            {
-                Log.Error(ex, $"Отсутствуют метаданные: {filePath} {ex.Message}");
-                EditDateTimeWindow editWindow = new(filePath);
-                EditDateTimeViewModel viewModel = new(DateTime.MinValue, filePath);
-                editWindow.DataContext = viewModel;
-                viewModel.SaveCompleted += (sender, e) => editWindow.Close();
-                editWindow.DataContext = viewModel;
-                editWindow.ShowDialog();
-            }
-        }
+        
 
         protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
